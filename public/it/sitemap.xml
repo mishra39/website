@@ -5,7 +5,7 @@
     <loc>http://localhost:1313/website/it/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en-us"
+                hreflang="en-gb"
                 href="http://localhost:1313/website/"
                 />
     <xhtml:link
@@ -27,7 +27,7 @@
     <loc>http://localhost:1313/website/it/categories/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en-us"
+                hreflang="en-gb"
                 href="http://localhost:1313/website/categories/"
                 />
     <xhtml:link
@@ -49,7 +49,7 @@
     <loc>http://localhost:1313/website/it/tags/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en-us"
+                hreflang="en-gb"
                 href="http://localhost:1313/website/tags/"
                 />
     <xhtml:link
