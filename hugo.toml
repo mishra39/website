@@ -1,8 +1,8 @@
 title = "Awesome Hugo blog"
-baseURL = 'https://mishra39.github.io/website/'
+baseURL = 'https://hba.sid.one/'
 
 # This is what goes in <html lang="">
-languageCode = 'en-gb'
+languageCode = 'en-us'
 
 # This defines how dates are formatted
 defaultContentLanguage = "en-gb"
