@@ -9,16 +9,6 @@
   </sitemap>
   
   <sitemap>
-    <loc>http://localhost:1313/website/de-de/sitemap.xml</loc>
-    
-  </sitemap>
-  
-  <sitemap>
-    <loc>http://localhost:1313/website/ru-ru/sitemap.xml</loc>
-    
-  </sitemap>
-  
-  <sitemap>
     <loc>http://localhost:1313/website/it/sitemap.xml</loc>
     
   </sitemap>

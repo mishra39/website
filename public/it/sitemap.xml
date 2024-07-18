@@ -10,16 +10,6 @@
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="de-de"
-                href="http://localhost:1313/website/de-de/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="ru-ru"
-                href="http://localhost:1313/website/ru-ru/"
-                />
-    <xhtml:link
-                rel="alternate"
                 hreflang="it"
                 href="http://localhost:1313/website/it/"
                 />
@@ -32,16 +22,6 @@
                 />
     <xhtml:link
                 rel="alternate"
-                hreflang="de-de"
-                href="http://localhost:1313/website/de-de/categories/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="ru-ru"
-                href="http://localhost:1313/website/ru-ru/categories/"
-                />
-    <xhtml:link
-                rel="alternate"
                 hreflang="it"
                 href="http://localhost:1313/website/it/categories/"
                 />
@@ -51,16 +31,6 @@
                 rel="alternate"
                 hreflang="en-gb"
                 href="http://localhost:1313/website/tags/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="de-de"
-                href="http://localhost:1313/website/de-de/tags/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="ru-ru"
-                href="http://localhost:1313/website/ru-ru/tags/"
                 />
     <xhtml:link
                 rel="alternate"
