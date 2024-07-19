@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on Awesome Hugo blog</title>
+    <title>Posts on My Personal Website</title>
     <link>http://localhost:1313/website/posts/</link>
-    <description>Recent content in Posts on Awesome Hugo blog</description>
+    <description>Recent content in Posts on My Personal Website</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Tue, 02 May 2023 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/website/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 19 Jul 2024 07:28:02 -0400</lastBuildDate><atom:link href="http://localhost:1313/website/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Minimum Snap Trajectory Generation-Part 1</title>
+      <link>http://localhost:1313/website/posts/min-snap-part1/</link>
+      <pubDate>Fri, 19 Jul 2024 07:28:02 -0400</pubDate>
+      
+      <guid>http://localhost:1313/website/posts/min-snap-part1/</guid>
+      
+      <description>Test2</description>
+      
+    </item>
+    
     <item>
       <title>Table of content</title>
       <link>http://localhost:1313/website/posts/table-of-content/</link>

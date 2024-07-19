@@ -1,23 +1,23 @@
 ---
 title: About
-description: 'Hugo, the world''s fastest framework for building websites'
-author: Hugo Authors
+description: 'About Akshit Mishra'
+author: Akshit Mishra
+toc: false
+tags:
+    - Motion Planning
+    - Robotics
+    - CUDA
+    - C++
+    - Python
+    - ROS 2
 ---
 
-Written in Go, Hugo is an open source static site generator available under the [Apache Licence 2.0.](https://github.com/gohugoio/hugo/blob/master/LICENSE) Hugo supports TOML, YAML and JSON data file types, Markdown and HTML content files and uses shortcodes to add rich content. Other notable features are taxonomies, multilingual mode, image processing, custom output formats, HTML/CSS/JS minification and support for Sass SCSS workflows.
+I am a Robotics Software Engineer with a focus on motion planning for unmanned aerial vehicles (UAVs). I work with different groups to implement optimal, robust, and safe planning algorithms to help robots operate in diverse and challenging environments. I also ensure enjoy working on scalable and modular motion planning solutions that allow the user to plug-and-play them as modules in the autonomy stack. 
 
-Hugo makes use of a variety of open source projects including:
+Currently, I am working on integrating and improving a perception-aware motion planning approach that uses B-Spline optimization to find dynamically-feasible paths for quadrotors. I also write efficient and performant GPU-accelerated code using CUDA and Thrust for Edge AI devices.
 
-* https://github.com/yuin/goldmark
-* https://github.com/alecthomas/chroma
-* https://github.com/muesli/smartcrop
-* https://github.com/spf13/cobra
-* https://github.com/spf13/viper
+I have a Master of Science in Controls and Robotics-Mechanical Engineering Research from Carnegie Mellon University, where I was a Research Assistant at the [Robomechanics Lab](https://www.cmu.edu/me/robomechanicslab/). My research focused on using advanced computer vision algorithms for path planning in untoward environments and then leveraging low-level controllers to execute the desired paths. Moreover, part of my research also focused on hardware integration of robotic platforms to ensure that the robots possess the required level of sensing prowess. 
 
-Hugo is ideal for blogs, corporate websites, creative portfolios, online magazines, single page applications or even a website with thousands of pages.
+I have extensive experience with Robot Operation Systems (ROS), Gazebo, C++17, Python, Data Structures and Algorithms, and Deep Learning. I am also a passionate writer and have published articles on the latest developments in the field of technology.
 
-Hugo is for people who want to hand code their own website without worrying about setting up complicated runtimes, dependencies and databases.
-
-Websites built with Hugo are extremely fast, secure and can be deployed anywhere including, AWS, GitHub Pages, Heroku, Netlify and any other hosting provider.
-
-Learn more and contribute on [GitHub](https://github.com/gohugoio).
+Learn more and contribute on [GitHub](https://github.com/mishra39).

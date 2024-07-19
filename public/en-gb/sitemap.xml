@@ -3,7 +3,7 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>http://localhost:1313/website/</loc>
-    <lastmod>2023-05-02T00:00:00+00:00</lastmod>
+    <lastmod>2024-07-19T07:28:02-04:00</lastmod>
     <xhtml:link
                 rel="alternate"
                 hreflang="it"
@@ -15,8 +15,11 @@
                 href="http://localhost:1313/website/"
                 />
   </url><url>
+    <loc>http://localhost:1313/website/posts/min-snap-part1/</loc>
+    <lastmod>2024-07-19T07:28:02-04:00</lastmod>
+  </url><url>
     <loc>http://localhost:1313/website/posts/</loc>
-    <lastmod>2023-05-02T00:00:00+00:00</lastmod>
+    <lastmod>2024-07-19T07:28:02-04:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/website/posts/table-of-content/</loc>
     <lastmod>2023-05-02T00:00:00+00:00</lastmod>
@@ -54,6 +57,8 @@
   </url><url>
     <loc>http://localhost:1313/website/pages/about/</loc>
   </url><url>
+    <loc>http://localhost:1313/website/tags/c&#43;&#43;/</loc>
+  </url><url>
     <loc>http://localhost:1313/website/categories/</loc>
     <xhtml:link
                 rel="alternate"
@@ -66,6 +71,16 @@
                 href="http://localhost:1313/website/categories/"
                 />
   </url><url>
+    <loc>http://localhost:1313/website/tags/cuda/</loc>
+  </url><url>
+    <loc>http://localhost:1313/website/tags/motion-planning/</loc>
+  </url><url>
     <loc>http://localhost:1313/website/pages/</loc>
+  </url><url>
+    <loc>http://localhost:1313/website/tags/python/</loc>
+  </url><url>
+    <loc>http://localhost:1313/website/tags/robotics/</loc>
+  </url><url>
+    <loc>http://localhost:1313/website/tags/ros-2/</loc>
   </url>
 </urlset>
