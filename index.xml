@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Home on Awesome Hugo blog</title>
+    <title>Home on My Personal Website</title>
     <link>https://mishra39.github.io/website/</link>
-    <description>Recent content in Home on Awesome Hugo blog</description>
+    <description>Recent content in Home on My Personal Website</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <lastBuildDate>Tue, 02 May 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mishra39.github.io/website/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 19 Jul 2024 07:28:02 -0400</lastBuildDate><atom:link href="https://mishra39.github.io/website/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Minimum Snap Trajectory Generation-Part 1</title>
+      <link>https://mishra39.github.io/website/posts/min-snap-part1/</link>
+      <pubDate>Fri, 19 Jul 2024 07:28:02 -0400</pubDate>
+      
+      <guid>https://mishra39.github.io/website/posts/min-snap-part1/</guid>
+      
+      <description>Minimum Snap Trajectory Generation-Part 1 👋Introduction In robotics, motion planning addresses the challenge of moving a robot from a starting point (point A) to a desired goal point (point B). The specific approach to motion planning depends heavily on the type of robot and its environment. For instance, the solution for an industrial robot arm&amp;rsquo;s end effector to reach a specific point will be vastly different from that needed for a quadcopter to navigate a complex environment.</description>
+      
+    </item>
+    
     <item>
       <title>Table of content</title>
       <link>https://mishra39.github.io/website/posts/table-of-content/</link>
@@ -85,9 +96,8 @@ Enable table of content on all posts To enable ToC on all posts (globally) set p
       
       <guid>https://mishra39.github.io/website/pages/about/</guid>
       
-      <description>Written in Go, Hugo is an open source static site generator available under the Apache Licence 2.0. Hugo supports TOML, YAML and JSON data file types, Markdown and HTML content files and uses shortcodes to add rich content. Other notable features are taxonomies, multilingual mode, image processing, custom output formats, HTML/CSS/JS minification and support for Sass SCSS workflows.
-Hugo makes use of a variety of open source projects including:
-https://github.com/yuin/goldmark https://github.</description>
+      <description>I am a Robotics Software Engineer with a focus on motion planning for unmanned aerial vehicles (UAVs). I work with different groups to implement optimal, robust, and safe planning algorithms to help robots operate in diverse and challenging environments. I also ensure enjoy working on scalable and modular motion planning solutions that allow the user to plug-and-play them as modules in the autonomy stack.
+Currently, I am working on integrating and improving a perception-aware motion planning approach that uses B-Spline optimization to find dynamically-feasible paths for quadrotors.</description>
       
     </item>
     

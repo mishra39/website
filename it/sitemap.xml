@@ -2,18 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://mishra39.github.io/website/it/</loc>
-    <xhtml:link
-                rel="alternate"
-                hreflang="en-gb"
-                href="https://mishra39.github.io/website/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="it"
-                href="https://mishra39.github.io/website/it/"
-                />
-  </url><url>
     <loc>https://mishra39.github.io/website/it/categories/</loc>
     <xhtml:link
                 rel="alternate"
@@ -24,6 +12,18 @@
                 rel="alternate"
                 hreflang="it"
                 href="https://mishra39.github.io/website/it/categories/"
+                />
+  </url><url>
+    <loc>https://mishra39.github.io/website/it/</loc>
+    <xhtml:link
+                rel="alternate"
+                hreflang="en-gb"
+                href="https://mishra39.github.io/website/"
+                />
+    <xhtml:link
+                rel="alternate"
+                hreflang="it"
+                href="https://mishra39.github.io/website/it/"
                 />
   </url><url>
     <loc>https://mishra39.github.io/website/it/tags/</loc>

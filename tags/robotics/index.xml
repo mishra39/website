@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Pages on My Personal Website</title>
-    <link>https://mishra39.github.io/website/pages/</link>
-    <description>Recent content in Pages on My Personal Website</description>
+    <title>Robotics on My Personal Website</title>
+    <link>https://mishra39.github.io/website/tags/robotics/</link>
+    <description>Recent content in Robotics on My Personal Website</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-gb</language><atom:link href="https://mishra39.github.io/website/pages/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-gb</language><atom:link href="https://mishra39.github.io/website/tags/robotics/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>About</title>
       <link>https://mishra39.github.io/website/pages/about/</link>
