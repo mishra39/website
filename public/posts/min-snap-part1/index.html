@@ -53,7 +53,7 @@
         },
         "datePublished": "2024-07-19",
         "description": "",
-        "wordCount":  345 ,
+        "wordCount":  653 ,
         "mainEntityOfPage": "True",
         "dateModified": "2024-07-19",
         "image": {
@@ -189,7 +189,11 @@ stroke-linejoin="round" class="feather feather-home">
             </header>
             
     
-    <details class="toc" ZgotmplZ>
+        
+            
+        
+    
+    <details class="toc" open>
         <summary><b>Table of Contents</b></summary>
         <nav id="TableOfContents">
   <ul>
@@ -204,10 +208,10 @@ stroke-linejoin="round" class="feather feather-home">
                 <h1 id="minimum-snap-trajectory-generation-part-1">Minimum Snap Trajectory Generation-Part 1</h1>
 <h2 id="introduction">👋Introduction</h2>
 <p>In robotics, motion planning addresses the challenge of moving a robot from a starting point (point A) to a desired goal point (point B). The specific approach to motion planning depends heavily on the type of robot and its environment. For instance, the solution for an industrial robot arm&rsquo;s end effector to reach a specific point will be vastly different from that needed for a quadcopter to navigate a complex environment.</p>
-<p><img alt="Grasp Planning for a robot arm" src="https://moveit.picknik.ai/humble/_images/grasp_pipeline_demo.gif"></p>
+<img src="https://moveit.picknik.ai/humble/_images/grasp_pipeline_demo.gif" alt="Grasp Planning for a robot arm" width="400"/>
 <p><em>Grasp Planning for a robot arm.
 Source: <a href="https://moveit.picknik.ai">https://moveit.picknik.ai</a></em></p>
-<p><img alt="FAST-Planner" src="https://github.com/HKUST-Aerial-Robotics/Fast-Planner/blob/master/files/icra20_3.gif?raw=true"></p>
+<img src="https://github.com/HKUST-Aerial-Robotics/Fast-Planner/blob/master/files/icra20_3.gif?raw=true" alt="FAST Planner" width="400"/>
 <p><em>Motion Planning for a quadcopter.
 Source: <a href="https://github.com/HKUST-Aerial-Robotics/Fast-Planner">https://github.com/HKUST-Aerial-Robotics/Fast-Planner</a></em></p>
 <p>Consequently, a motion planning strategy ideal for a robotic arm performing a pick-and-place operation wouldn&rsquo;t translate well to a quadrotor navigating a forest. This highlights the importance of considering factors like the robot&rsquo;s dynamics and environmental constraints when choosing the most effective motion planning approach.</p>
@@ -219,6 +223,27 @@ But first let’s understand Snap.</p>
 <p><img alt="Fast" src="/website/posts/min-snap-part1/oh_snap.webp"></p>
 <p>In Motion planning, Snap refers to the fourth derivative of position, the second derivative of acceleration, or the third derivative of velocity.
 So, why not just focus on minimizing acceleration? Minimizing acceleration is definitely important, but it&rsquo;s not the whole story. Let&rsquo;s delve deeper and discover why snap plays a crucial role in generating smooth and efficient trajectories for robots!</p>
+<p><strong>😭Velocity</strong>: Minimizing velocity can lead to huge jumps in acceleration, which could result in sudden start and stops.</p>
+<img src="https://media4.giphy.com/media/4aRCnf3LuPnRzlEE6A/200w.gif?cid=6c09b952s9e78bayjxdtfag9x7cymxrdp2e5xr2mqlhxp0kp&ep=v1_videos_search&rid=200w.gif&ct=v" alt= "Sudden Stop" width="300"/>
+<p><em>Minimizing only velocity can lead to sudden and unsafe braking</em></p>
+<p>😓 <strong>Acceleration</strong>: Minimizing acceleration can lead to discontinuous jumps in jerk, which would result in jerk motion. This is not suitable for applications where tracking is important.</p>
+<img src="https://media.tenor.com/PiLg9bsD7NYAAAAM/car.gif" alt="Vehicle shaking" width="300" />
+<p><em>Focusing only on acceleration can sometimes lead to jumps in jerk causing damange to vehicle componenets</em></p>
+<p>🙂 <strong>Jerk</strong>: There are some approaches that minimize jerk. Specifically, in applications for tracking, minimizing jerk might be enough and is less computationally intensive than minimizing snap. However, minimizing snap takes it a step further and generates even smoother flight profiles. This is important when flying with delicate cargo or trying to generate efficient motion profiles.</p>
+<img src="https://www.diyphotography.net/wp-content/uploads/2017/03/follow_mode.gif" alt="Drone tracking a target" width="400"/>
+<p><em>Minimizing jerk is a good approach for tracking targets</em></p>
+<p>😃 <strong>Snap</strong>
+There are a lot of inherent advantages of minimizing snap over minimizing velocity and acceleration so let’s look and understand some of the most significant ones.</p>
+<p>Continuity in control inputs
+Snap-minimized trajectories ensure continuity up to the third derivative of position (jerk), which means the control inputs required to follow the trajectory will be continuous.
+Compatibility with differential flatness:
+Quadrotor dynamics are differentially flat with respect to the position and yaw angle. Minimizing snap aligns well with this property, making it easier to generate dynamically feasible trajectories.
+Continuity in control inputs:
+Snap-minimized trajectories ensure continuity up to the third derivative of position (jerk), which means the control inputs required to follow the trajectory will be continuous.
+This is particularly important for aggressive maneuvers where discontinuities in lower-order derivatives could lead to instability.</p>
+<p>These properties help generate smooth and elegant trajectories for quadcopters when minimizing snap. Furthermore, minimizing snap also helps reduce the stress on actuators by preventing sudden changes in thrust.</p>
+<p><img alt="DIF FPV Smooth" src="https://images.squarespace-cdn.com/content/v1/58fd838a9f7456e0b92a446a/1615414861152-U322WCC9G8ERL5TVF9YH/170-drone-video.gif"></p>
+<p><em>Minimizing Snap creates smooth motion profiles without excessive jerk</em></p>
 <h2 id="references">References</h2>
 <ol>
 <li>
