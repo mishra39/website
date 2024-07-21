@@ -171,10 +171,134 @@ This brings us to the more interesting part, THE UNKNOWNS!
 Let's zoom out and consider the bigger picture of trajectory generation. We aim to utilize provided waypoints to design a smooth motion path for the quadcopter to follow. This translates to pinpointing the exact velocities, accelerations, and so on, that the drone needs to maintain at each waypoint. While we typically have the desired values for the start and end points, the challenge lies in determining the first-order and higher derivatives (velocity, acceleration, etc.) for the intermediate waypoints. In our simple example above, there's only one such intermediate point: waypoint 2.
 
 ## 🪙Cost Function
+We need to provide a cost function for every optimization problem. This function guides the optimizer as it tries to minimize the value of this function at all times. As we are trying to minimize snap, our cost function will be the square of the fourth-order derivative (snap) of our polynomial trajectory $f(t)$. The construction of the cost function and matrix Qk is shown below.
+
+![Cost Function](cost.png)
+
+The matrix form for the cost function can be represented as shown here.
+
+![Cost Function](cost_mat.png)
+where,
+</br>
+**M:** number of segments
+
+Building on the equations presented earlier, we calculate the fourth-order derivative using the general formula for the $i^{th}$ derivative. To achieve a more robust cost function, we then square the resulting equation. Finally, we integrate this squared term over the entire segment's trajectory.
+
+## 🔒Constraints
+
+### Derivative Constraints
+- Waypoint Constraint
+    </br>
+    This constraint ensures that the trajectory passes through the mission waypoints provided as inputs to the problem. For our example, it looks something like this:
+    1. For segment 1, position at time 0 should be at waypoint 1 (P1) and waypoint 2 (P2) at time $T_1$. From the polynomial equation above we get:
+    $$f^0_{1,0} = P_1 = p_7*(0) + p_6*(0) + p_5*(0) + p_4*(0) + p_3*(0) + p_2*(0) + p_1*(0) + p_0
+$$
+$$f^0_{1,0} = P_1 = p_0$$
+$$f^0_{1,T_1} = P_2 = p_7*(T_1) + p_6*(T_1) + p_5*(T_1) + p_4*(T_1) + p_3*(T_1) + p_2*(T_1) + p_1*(T_1) + p_0
+$$
+</br>
+Combining this for all the waypoints in our example we get: 
+
+$ \begin{bmatrix}
+ f^0_{1,0}\\
+ f^0_{1,T_1}\\
+ f^0_{2,0}\\
+ f^0_{2,T_2}
+\end{bmatrix} = \begin{bmatrix}
+P_1 \\
+P_2 \\
+P_2 \\
+P_3
+\end{bmatrix}
+$
+
+### Start and End States Constraints
+Next we want to ensure that the quadcopter has desired states at start and end points of the trajectory. This can be represented as shown below.
+
+$ \begin{bmatrix}
+ f^1_{1,0}\\
+ f^2_{1,0}\\
+\vdots \\
+ f^k_{1,0} \\
+\\
+ f^1_{2,T}\\
+ f^2_{2,T}\\
+\vdots \\
+ f^k_{2,T}
+\end{bmatrix} = \begin{bmatrix}
+v_0 \\
+a_0 \\
+\vdots \\
+v_2 \\
+a_2 \\
+\vdots \\
+p^k_2
+\end{bmatrix}
+$
+</br>
+where,
+$v_i$, $a_i$ are the velocity and acceleration for $i^th$ segment and $p^k_2$ is the kth derivative of the polynomial.
 
 
+In our example, we want to start and end at zero velocity and acceleration.
+
+Velocity and acceleration  for segment 1 at $T = 0$:
+
+$$f^1_{1,0} = p_1 = 0 $$
+$$f^2_{1,0} = 2 * p_2=0$$
+
+Finally, the generalized form of $i^th$ derivative of the polynomial is shown below along with the construction of the constraint matrix A.
+
+![Waypoint_Constraint](wpt_mat_con.png)
+
+where,</br>
+$A_j$: constraint mapping matrix </br>
+$p_j$: matrix of polynomial coefficients</br>
+$d_j$: derivative matrix
+
+
+### Continuity Constraints
+Because we optimize each trajectory segment independently, we must guarantee a smooth transition between segments. This is achieved by enforcing continuity constraints, ensuring that the polynomial and its derivatives match at the connection points between segments. In our example, this constraint applies to waypoint 2, an intermediate waypoint.
+
+![Continuity_constraint](cont_cons.jpg)
+
+The set of equations below capture this constraint by ensuring that the polynomial trajectory and its derivatives have the same value at time Tj (T1 for our example) when we switch from segment 1 to segment 2 polynomial coefficients.
+
+![Continuity_constraint_eq](cont_cons_eq.png)
+![Continuity_constraint_eq](cont_cons_mat.png)
+
+This leads us to our **constrained QP formulation.**
+![Constrained QP](const_qp.png)
+
+The constrained QP solves for the coefficients of the polynomial trajectory for each segment while minimizing the cost function and satisfying the previously discussed criteria. Note that the criteria are represented as equality constraints.
+</br>
+Once we find $p_{i,j}$ for each segment i, we can simply plugin the time values in equation $f^k(t)$ to find the value of the trajectory or its derivative at that instant t.
+### Constrained QP Method Demo
+<iframe width="560" height="315" src="https://www.youtube.com/embed/MvRTALJp8DM?si=r7heCvWbiloR2J2e" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+
+## Not perfect yet: Issues with Constrained QP
+Although this setup of using constrained QP to generate minimum snap trajectories is a great starting point, it certainly has some major flaws. In Part 2 of this article, we’ll see how **_[Richter et al., 2016]_** solves these issues by generating a more robust formulation. Some of the issues with the current constrained QP are discussed below.
+
+- **No closed-form solution:**
+This method of constrained QP with equality constraints to generate minimum snap trajectories works well for only single segments and short trajectories. It quickly becomes problematic to use for multiple segments represented with high-order polynomials.
+
+- **Numerical Instability:**
+The variables being optimized for are the coefficients of the polynomials. This can lead to numerical stability issues as these coefficients can be quite small in values, which can cause issues when inverting matrices.
+
+- **No time allocation:**
+This setup requires us to know  the time allocation (T1, T2) for each trajectory in advance. However, to generate fast and smooth motions we also need to optimize for the time variable T for each segment. 
+
+## Conclusion
+In this article, we reviewed **_[Mellinger et al., 2011]_** approach on how to generate minimum snap trajectories using the differential flatness properties of a quadrotor. We also covered how to construct the cost matrix Q and the constraint matrix A based on the problem setup.
+In the next article, we will see how **_[Richter et al., 2016]_** builds on this approach to generate even faster and more robust minimum snap trajectories using an unconstrained QP formulation.
+
+<iframe src="https://giphy.com/embed/xUPGcyuPRNjODvvOFO" width="319" height="480" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/coffee-skateboarding-rad-xUPGcyuPRNjODvvOFO">via GIPHY</a></p>
 
 ## References
 1. Mellinger, Daniel, and Vijay Kumar. "Minimum snap trajectory generation and control for quadrotors." 2011 IEEE international conference on robotics and automation. IEEE, 2011.
 
 2. Richter, Charles, Adam Bry, and Nicholas Roy. "Polynomial trajectory planning for aggressive quadrotor flight in dense indoor environments." Robotics Research: The 16th International Symposium ISRR. Springer International Publishing, 2016.
+
+3. [Introduction to Aerial Robotics](https://gaowenliang.github.io/HKUST-ELEC5660-Introduction-to-Aerial-Robots/project/project.html
+)

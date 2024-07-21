@@ -20,12 +20,12 @@ Currently, I am working on integrating and improving a perception-aware motion p
 
 
 <figure style="text-align:center">
-  <img src="https://github.com/mishra39/website/blob/main/assets/patrick_robot.png" alt="Image of a Robot" width="400" height="400" />
+  <img src="https://github.com/mishra39/website/blob/main/assets/patrick_robot.png?raw=true" alt="Patrick" width="500"/>
   <figcaption>Autonomous Agricultural Sampling Robot Developed at CMU Robomechanics Lab</figcaption>
 </figure>
 
 <figure style="text-align:center">
-  <img src="https://www.cmu.edu/me/robomechanicslab/static/images/Clifford-Gallery.jpg" alt="Offroad Robot" width="400" height="400" />
+  <img src="https://www.cmu.edu/me/robomechanicslab/static/images/Clifford-Gallery.jpg" alt="Offroad Robot" width="500"/>
   <figcaption>Four-wheel drive Robot from Robomechanics Lab at CMU for autonomous offroad terrain navigation</figcaption>
 </figure>
 
