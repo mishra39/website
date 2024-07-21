@@ -154,6 +154,25 @@ The total unknowns are 6 (3 for each start and end waypoint of each segment). Mo
 For our example, let's break down the trajectory into segments. The polynomial for each segment i is represented by a polynomial $f(t)$ as shown below. 
 ![Segments](segments_wpts.png)
 
+We assume each segment starts at time $T_{i-1}$ and ends at time $T_i$, i.e time interval for segment i, $t_i ∊ [T_{i-1}, T_i]$. For now let’s assume the time interval is fixed for each segment. In the next part of this blog, we will see how we can optimize for this parameter as well. The equation below shows one possible way to compute the time for a segment i using the distance between waypoints and the maximum velocity of the vehicle.
+
+$$T = \frac{||(x_1, y_1) - (x_2, y_2)||}{V_{max}}
+$$
+
+## What We Know, What We Don't: The Known and the Unknowns of the problem
+
+It is crucial to understand the known and unknown entities. As shown in the figure below, we know the positions of all the waypoints and we can also set the desired velocities and accelerations for the start and end waypoints.
+![knowns_unknowns](knwons_unknowns.png)
+
+This brings us to the more interesting part, THE UNKNOWNS! 
+
+<img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExejF0dGtwazh1dXBleXJndmQxdmZtMXBrN2ppN3E2M2ZwdWgwanQwYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/UuGjHrJw6JB4aFHU15/giphy.gif" alt="the_unknown" width="480" />
+
+Let's zoom out and consider the bigger picture of trajectory generation. We aim to utilize provided waypoints to design a smooth motion path for the quadcopter to follow. This translates to pinpointing the exact velocities, accelerations, and so on, that the drone needs to maintain at each waypoint. While we typically have the desired values for the start and end points, the challenge lies in determining the first-order and higher derivatives (velocity, acceleration, etc.) for the intermediate waypoints. In our simple example above, there's only one such intermediate point: waypoint 2.
+
+## 🪙Cost Function
+
+
 
 ## References
 1. Mellinger, Daniel, and Vijay Kumar. "Minimum snap trajectory generation and control for quadrotors." 2011 IEEE international conference on robotics and automation. IEEE, 2011.

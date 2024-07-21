@@ -53,7 +53,7 @@
         },
         "datePublished": "2024-07-19",
         "description": "",
-        "wordCount":  1401 ,
+        "wordCount":  1647 ,
         "mainEntityOfPage": "True",
         "dateModified": "2024-07-19",
         "image": {
@@ -211,6 +211,8 @@ stroke-linejoin="round" class="feather feather-home">
         <li><a href="#why-the-magic-number-7">Why the Magic number 7️⃣?</a></li>
       </ul>
     </li>
+    <li><a href="#what-we-know-what-we-dont-the-known-and-the-unknowns-of-the-problem">What We Know, What We Don&rsquo;t: The Known and the Unknowns of the problem</a></li>
+    <li><a href="#cost-function">🪙Cost Function</a></li>
     <li><a href="#references">References</a></li>
   </ul>
 </nav>
@@ -337,6 +339,16 @@ For minimizing snap over segment, we need to solve for the following variables a
 <p>The total unknowns are 6 (3 for each start and end waypoint of each segment). Moreover, we can strategically set certain coefficients to zero based on the chosen boundary conditions (e.g., setting jerk to zero at the beginning). This allows us to use a 7th-degree polynomial to represent a minimum snap trajectory with 7 unknowns.</p>
 <p>For our example, let&rsquo;s break down the trajectory into segments. The polynomial for each segment i is represented by a polynomial $f(t)$ as shown below.
 <img alt="Segments" src="/website/posts/min-snap-part1/segments_wpts.png"></p>
+<p>We assume each segment starts at time $T_{i-1}$ and ends at time $T_i$, i.e time interval for segment i, $t_i ∊ [T_{i-1}, T_i]$. For now let’s assume the time interval is fixed for each segment. In the next part of this blog, we will see how we can optimize for this parameter as well. The equation below shows one possible way to compute the time for a segment i using the distance between waypoints and the maximum velocity of the vehicle.</p>
+<p>$$T = \frac{||(x_1, y_1) - (x_2, y_2)||}{V_{max}}
+$$</p>
+<h2 id="what-we-know-what-we-dont-the-known-and-the-unknowns-of-the-problem">What We Know, What We Don&rsquo;t: The Known and the Unknowns of the problem</h2>
+<p>It is crucial to understand the known and unknown entities. As shown in the figure below, we know the positions of all the waypoints and we can also set the desired velocities and accelerations for the start and end waypoints.
+<img alt="knowns_unknowns" src="/website/posts/min-snap-part1/knwons_unknowns.png"></p>
+<p>This brings us to the more interesting part, THE UNKNOWNS!</p>
+<img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExejF0dGtwazh1dXBleXJndmQxdmZtMXBrN2ppN3E2M2ZwdWgwanQwYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/UuGjHrJw6JB4aFHU15/giphy.gif" alt="the_unknown" width="480" />
+<p>Let&rsquo;s zoom out and consider the bigger picture of trajectory generation. We aim to utilize provided waypoints to design a smooth motion path for the quadcopter to follow. This translates to pinpointing the exact velocities, accelerations, and so on, that the drone needs to maintain at each waypoint. While we typically have the desired values for the start and end points, the challenge lies in determining the first-order and higher derivatives (velocity, acceleration, etc.) for the intermediate waypoints. In our simple example above, there&rsquo;s only one such intermediate point: waypoint 2.</p>
+<h2 id="cost-function">🪙Cost Function</h2>
 <h2 id="references">References</h2>
 <ol>
 <li>

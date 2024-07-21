@@ -96,8 +96,7 @@ Enable table of content on all posts To enable ToC on all posts (globally) set p
       
       <guid>http://localhost:1313/website/pages/about/</guid>
       
-      <description>I am a Robotics Software Engineer with a focus on motion planning for unmanned aerial vehicles (UAVs). I work with different groups to implement optimal, robust, and safe planning algorithms to help robots operate in diverse and challenging environments. I also ensure enjoy working on scalable and modular motion planning solutions that allow the user to plug-and-play them as modules in the autonomy stack.
-Currently, I am working on integrating and improving a perception-aware motion planning approach that uses B-Spline optimization to find dynamically-feasible paths for quadrotors.</description>
+      <description>I am a Robotics Software Engineer with a focus on motion planning for unmanned aerial vehicles (UAVs). I work with different autonomy groups to implement optimal, robust, and safe planning algorithms to help robots operate in diverse and challenging environments. I also ensure enjoy working on scalable and modular motion planning solutions that allow the user to plug-and-play them as modules in the autonomy stack. The video below shows some of the work I have done on the low SWaP-C (Size, Weight, Power, and Cost) team at Near Earth.</description>
       
     </item>
     
