@@ -70,7 +70,91 @@ These properties help generate smooth and elegant trajectories for quadcopters w
 
 ![DIF FPV Smooth](https://images.squarespace-cdn.com/content/v1/58fd838a9f7456e0b92a446a/1615414861152-U322WCC9G8ERL5TVF9YH/170-drone-video.gif)
 
-_Minimizing Snap creates smooth motion profiles without excessive jerk_
+_Minimizing Snap creates elegant motion profiles_
+
+## 🥫Differential Flatness: The secret sauce!
+Differential flatness is a potent concept in control theory that can be applied to the trajectory optimization problem for quadrotors to generate dynamically feasible trajectories. 
+
+A set of variables in a system is considered differentially flat if we can reconstruct all the system's states and control inputs using just a chosen few of these variables and their derivatives. It might sound like a magic trick, but there's a clear logic behind it! Let's unravel this concept with the help of a quadrotor model example.
+
+
+![Differential Flatness](diff_flat.jpg)
+
+For a quadrotor, if we pick the 3D position (x, y, z) and yaw angle (ψ) as our flat outputs, then remarkably, we can express all other states (velocity, acceleration, etc.) and the control input (motor thrust) as functions of these chosen flat outputs and their derivatives.
+
+Let’s look at some straightforward equations to drive this point home.
+
+- **Flat outputs**: [x,y,z,ψ]
+- **States**
+    - Velocity: v = [ẋ, ẏ, ż] is just the first order derivative of flat outputs  x, y, z
+    - Acceleration: a = [ẍ, ÿ, z̈] is just the second order derivative of  x, y, z. 
+
+    - Roll: $\varphi = \sin^{-1} \left( \frac{\ddot{x} \sin \psi - \ddot{y} \cos \psi}{g} \right)
+$
+    - Pitch: $\theta = \sin^{-1} \left( \frac{\ddot{x} \cos \psi + \ddot{y} \sin \psi}{g \cos \varphi} \right)
+$
+
+Jerk and Snap can be represented in a similar way. To drive the point home further, we can look at attitude equations above that show  roll and pitch can also be represented just using the derivatives of the differentially flat variables we chose.
+
+### From Theory to Flight: How Flatness Simplifies Trajectory Planning
+
+The gargantuan advantage of the differential flatness property is that we don’t have to optimize over the entire state space. We can just solve for the flat outputs (x,y,z, yaw) and the rest of the states and inputs can be obtained using the equations above.
+
+And it doesn’t stop there! This property also ensures that the generated trajectories are **dynamically feasible**. This is due to the fact that whatever values we obtain for the inputs using the flat output variables are calculated using the dynamics of the system. Let’s look at the example below to fully grasp this concept.
+
+Let’s say we solve for flat outputs X = [x, y, z, ѱ]. Then we can obtain the states (velocity, acceleration, ..etc.) and inputs (Thrust from motors) using these values as shown above.
+After computing acceleration, we can use that to calculate Thrust as:
+
+$$
+T = m \sqrt{\ddot{x}^2 + \ddot{y}^2 + (\ddot{z} + g)^2}
+$$
+
+Since acceleration, Thrust and other states (pitch,roll,etc.) are computed using the equations of motion, the generated trajectories are guaranteed to be dynamically feasible.
+
+## Minimum Snap, Maximum Control
+
+Now, let’s do what we came here for and understand the problem setup for minimum snap trajectory generation.
+
+- **Objective:** Generate a minimum snap trajectory for a quadcopter.
+- **Inputs:**
+    1. 3D position of waypoints.
+    2. Boundary conditions: Desired velocities and acceleration for start and end point
+    3. Maximum velocity of the quadcopter.
+
+- **Constraints:**
+    1. Fixed start and end states. 
+    2. Trajectory passes through the waypoints
+
+- **Notation:**
+
+    ![Notation](notation.jpeg)
+The notation in the rest of this article to show trajectory terms is defined above. For instance, $x^{2}_{0,1}$ represents the 2nd derivative (acceleration) for segment 1 at time 0.
+
+![Notation](wpts.png)
+_For our example we have 3 waypoints with 2 segments connecting the waypoints_
+
+## 🧪Formulation
+The first step is to represent our desired trajectory using a polynomial equation. In order to minimize snap we need at least a seventh degree polynomial as shown below.
+
+$$
+f(t) = p_7 t^7 + p_6 t^6 + p_5 t^5 + p_4 t^4 + p_3 t^3 + p_2 t^2 + p_1 t + p_0
+$$
+
+### Why the Magic number 7️⃣?
+
+The reason we need at least a 7th degree polynomial to solve for a minimum snap trajectory is due to the number of unknown boundary conditions (explained in more detail later). 
+For minimizing snap over segment, we need to solve for the following variables at the start and end points:
+
+1. Position (0th derivative)
+2. Velocity (1st derivative)
+3. Acceleration (2nd derivative)
+
+The total unknowns are 6 (3 for each start and end waypoint of each segment). Moreover, we can strategically set certain coefficients to zero based on the chosen boundary conditions (e.g., setting jerk to zero at the beginning). This allows us to use a 7th-degree polynomial to represent a minimum snap trajectory with 7 unknowns.
+
+For our example, let's break down the trajectory into segments. The polynomial for each segment i is represented by a polynomial $f(t)$ as shown below. 
+![Segments](segments_wpts.png)
+
+
 ## References
 1. Mellinger, Daniel, and Vijay Kumar. "Minimum snap trajectory generation and control for quadrotors." 2011 IEEE international conference on robotics and automation. IEEE, 2011.
 
