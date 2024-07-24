@@ -2,40 +2,40 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://mishra39.github.io/website/it/categories/</loc>
+    <loc>http://localhost:1313/website/it/categories/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en-gb"
-                href="https://mishra39.github.io/website/categories/"
+                hreflang="en-us"
+                href="http://localhost:1313/website/categories/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="it"
-                href="https://mishra39.github.io/website/it/categories/"
+                href="http://localhost:1313/website/it/categories/"
                 />
   </url><url>
-    <loc>https://mishra39.github.io/website/it/</loc>
+    <loc>http://localhost:1313/website/it/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en-gb"
-                href="https://mishra39.github.io/website/"
+                hreflang="en-us"
+                href="http://localhost:1313/website/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="it"
-                href="https://mishra39.github.io/website/it/"
+                href="http://localhost:1313/website/it/"
                 />
   </url><url>
-    <loc>https://mishra39.github.io/website/it/tags/</loc>
+    <loc>http://localhost:1313/website/it/tags/</loc>
     <xhtml:link
                 rel="alternate"
-                hreflang="en-gb"
-                href="https://mishra39.github.io/website/tags/"
+                hreflang="en-us"
+                href="http://localhost:1313/website/tags/"
                 />
     <xhtml:link
                 rel="alternate"
                 hreflang="it"
-                href="https://mishra39.github.io/website/it/tags/"
+                href="http://localhost:1313/website/it/tags/"
                 />
   </url>
 </urlset>

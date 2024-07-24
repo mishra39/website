@@ -5,7 +5,7 @@
     <link>https://mishra39.github.io/website/posts/</link>
     <description>Recent content in Posts on My Personal Website</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-gb</language>
+    <language>en-us</language>
     <lastBuildDate>Fri, 19 Jul 2024 07:28:02 -0400</lastBuildDate><atom:link href="https://mishra39.github.io/website/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Minimum Snap Trajectory Generation-Part 1</title>
@@ -19,73 +19,46 @@
     </item>
     
     <item>
-      <title>Table of content</title>
-      <link>https://mishra39.github.io/website/posts/table-of-content/</link>
-      <pubDate>Tue, 02 May 2023 00:00:00 +0000</pubDate>
+      <title>AI as a Hype Tool</title>
+      <link>https://mishra39.github.io/website/posts/ai_hype_tool/</link>
+      <pubDate>Tue, 24 Aug 2021 06:44:36 -0400</pubDate>
       
-      <guid>https://mishra39.github.io/website/posts/table-of-content/</guid>
+      <guid>https://mishra39.github.io/website/posts/ai_hype_tool/</guid>
       
-      <description>Table of content This theme supports displaying table of content (ToC) in blog posts.
-Parameters You can manage a ToC with two parameters:
-global toc parameter; post toc parameter. The post toc parameter has higher priority than the global toc parameter.
-Enable table of content on all posts To enable ToC on all posts (globally) set parameter toc to true in hugo.toml.
-[params] toc = true To disable ToC globally, simply ignore the toc parameter or set it to false.</description>
+      <description>Link text</description>
       
     </item>
     
     <item>
-      <title>Math Typesetting - use Mathematical notation in blog posts</title>
-      <link>https://mishra39.github.io/website/posts/math-typesetting/</link>
-      <pubDate>Sat, 01 Apr 2023 00:00:00 +0000</pubDate>
+      <title>Introduction to Quantum Computers</title>
+      <link>https://mishra39.github.io/website/posts/quantum_computer_part1/</link>
+      <pubDate>Thu, 04 Jul 2019 06:57:54 -0400</pubDate>
       
-      <guid>https://mishra39.github.io/website/posts/math-typesetting/</guid>
+      <guid>https://mishra39.github.io/website/posts/quantum_computer_part1/</guid>
       
-      <description>&lt;p&gt;Mathematical notation in a Hugo project can be enabled by using
-&lt;a href=&#34;https://github.com/hugo-sid/hugo-blog-awesome/blob/main/layouts/partials/helpers/katex.html&#34;&gt;third party JavaScript libraries&lt;/a&gt;.&lt;/p&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>Markdown Syntax Guide</title>
-      <link>https://mishra39.github.io/website/posts/markdown-syntax/</link>
-      <pubDate>Sat, 11 Feb 2023 00:00:00 +0000</pubDate>
-      
-      <guid>https://mishra39.github.io/website/posts/markdown-syntax/</guid>
-      
-      <description>&lt;p&gt;This article offers a sample of basic Markdown syntax that can be used in Hugo content files, also it shows whether basic HTML elements are decorated with CSS in a Hugo theme.&lt;/p&gt;</description>
+      <description>Link text</description>
       
     </item>
     
     <item>
-      <title>Rich Content</title>
-      <link>https://mishra39.github.io/website/posts/rich-content/</link>
-      <pubDate>Thu, 09 Feb 2023 00:00:00 +0000</pubDate>
+      <title>Machine Learning 101</title>
+      <link>https://mishra39.github.io/website/posts/ml_intro/</link>
+      <pubDate>Mon, 03 Jun 2019 07:01:41 -0400</pubDate>
       
-      <guid>https://mishra39.github.io/website/posts/rich-content/</guid>
+      <guid>https://mishra39.github.io/website/posts/ml_intro/</guid>
       
-      <description>&lt;p&gt;Hugo ships with several &lt;a href=&#34;https://gohugo.io/content-management/shortcodes/#use-hugos-built-in-shortcodes&#34;&gt;Built-in Shortcodes&lt;/a&gt; for rich content, along with a &lt;a href=&#34;https://gohugo.io/about/hugo-and-gdpr/&#34;&gt;Privacy Config&lt;/a&gt; and a set of Simple Shortcodes that enable static and no-JS versions of various social media embeds.&lt;/p&gt;</description>
-      
-    </item>
-    
-    <item>
-      <title>Placeholder Text</title>
-      <link>https://mishra39.github.io/website/posts/placeholder-text/</link>
-      <pubDate>Tue, 07 Feb 2023 00:00:00 +0000</pubDate>
-      
-      <guid>https://mishra39.github.io/website/posts/placeholder-text/</guid>
-      
-      <description>&lt;p&gt;Lorem est tota propiore conpellat pectoribus de pectora summo.&lt;/p&gt;</description>
+      <description>Link text</description>
       
     </item>
     
     <item>
-      <title>Emoji Support</title>
-      <link>https://mishra39.github.io/website/posts/emoji-support/</link>
-      <pubDate>Wed, 01 Feb 2023 00:00:00 +0000</pubDate>
+      <title>The &#34;Boring&#34; Solution to Traffic</title>
+      <link>https://mishra39.github.io/website/posts/traffic_congestion/</link>
+      <pubDate>Sun, 10 Feb 2019 07:03:44 -0400</pubDate>
       
-      <guid>https://mishra39.github.io/website/posts/emoji-support/</guid>
+      <guid>https://mishra39.github.io/website/posts/traffic_congestion/</guid>
       
-      <description>&lt;p&gt;Emoji can be enabled in a Hugo project in a number of ways.&lt;/p&gt;</description>
+      <description>Link text</description>
       
     </item>
     
