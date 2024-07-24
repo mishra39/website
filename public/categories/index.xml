@@ -5,6 +5,6 @@
     <link>http://localhost:1313/website/categories/</link>
     <description>Recent content in Categories on My Personal Website</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-gb</language><atom:link href="http://localhost:1313/website/categories/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-us</language><atom:link href="http://localhost:1313/website/categories/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>
