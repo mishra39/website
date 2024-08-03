@@ -147,3 +147,6 @@ url = "https://www.linkedin.com/in/akshitmishra/"
 name = "twitter"
 url = "https://twitter.com"
 
+[imaging]
+  resampleFilter = "lanczos"
+  quality = 100

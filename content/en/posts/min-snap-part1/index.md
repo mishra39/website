@@ -1,7 +1,7 @@
 +++
 title = 'Minimum Snap Trajectory Generation-Part 1'
 date = 2024-07-19T07:28:02-04:00
-draft = false
+author = "Akshit Mishra"
 math = true
 tocOpen = true
 +++

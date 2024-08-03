@@ -11,8 +11,32 @@
     <loc>http://localhost:1313/website/posts/</loc>
     <lastmod>2024-07-19T07:28:02-04:00</lastmod>
   </url><url>
+    <loc>http://localhost:1313/website/projects/caa/</loc>
+    <lastmod>2024-05-15T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/website/tags/motion-planning/</loc>
+    <lastmod>2024-05-15T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/website/projects/</loc>
+    <lastmod>2024-05-15T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/website/tags/ros/</loc>
+    <lastmod>2024-05-15T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/website/projects/low_swap_c_nea/</loc>
+    <lastmod>2024-05-15T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/website/tags/</loc>
+    <lastmod>2024-05-15T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>http://localhost:1313/website/posts/ai_hype_tool/</loc>
     <lastmod>2021-08-24T06:44:36-04:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/website/projects/soil_sampling/</loc>
+    <lastmod>2021-01-01T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/website/projects/drone_inspection/</loc>
+    <lastmod>2020-12-20T00:00:00+00:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/website/posts/quantum_computer_part1/</loc>
     <lastmod>2019-07-04T06:57:54-04:00</lastmod>
@@ -31,11 +55,7 @@
   </url><url>
     <loc>http://localhost:1313/website/tags/cuda/</loc>
   </url><url>
-    <loc>http://localhost:1313/website/tags/motion-planning/</loc>
-  </url><url>
     <loc>http://localhost:1313/website/pages/</loc>
-  </url><url>
-    <loc>http://localhost:1313/website/pages/projects/</loc>
   </url><url>
     <loc>http://localhost:1313/website/pages/publications/</loc>
   </url><url>
@@ -44,7 +64,5 @@
     <loc>http://localhost:1313/website/tags/robotics/</loc>
   </url><url>
     <loc>http://localhost:1313/website/tags/ros-2/</loc>
-  </url><url>
-    <loc>http://localhost:1313/website/tags/</loc>
   </url>
 </urlset>
