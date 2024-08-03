@@ -5,7 +5,30 @@
     <link>https://mishra39.github.io/website/tags/</link>
     <description>Recent content in Tags on My Personal Website</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language><atom:link href="https://mishra39.github.io/website/tags/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-us</language>
+    <lastBuildDate>Wed, 15 May 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://mishra39.github.io/website/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Motion Planning</title>
+      <link>https://mishra39.github.io/website/tags/motion-planning/</link>
+      <pubDate>Wed, 15 May 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://mishra39.github.io/website/tags/motion-planning/</guid>
+      
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>ROS</title>
+      <link>https://mishra39.github.io/website/tags/ros/</link>
+      <pubDate>Wed, 15 May 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://mishra39.github.io/website/tags/ros/</guid>
+      
+      <description></description>
+      
+    </item>
+    
     <item>
       <title>C&#43;&#43;</title>
       <link>https://mishra39.github.io/website/tags/c&#43;&#43;/</link>
@@ -23,17 +46,6 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://mishra39.github.io/website/tags/cuda/</guid>
-      
-      <description></description>
-      
-    </item>
-    
-    <item>
-      <title>Motion Planning</title>
-      <link>https://mishra39.github.io/website/tags/motion-planning/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://mishra39.github.io/website/tags/motion-planning/</guid>
       
       <description></description>
       
