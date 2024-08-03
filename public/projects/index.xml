@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Projects on My Personal Website</title>
-    <link>http://localhost:1313/website/projects/</link>
+    <link>https://mishra39.github.io/website/projects/</link>
     <description>Recent content in Projects on My Personal Website</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 15 May 2024 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/website/projects/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 15 May 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://mishra39.github.io/website/projects/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Confined Area Operations with Firefly System</title>
-      <link>http://localhost:1313/website/projects/caa/</link>
+      <link>https://mishra39.github.io/website/projects/caa/</link>
       <pubDate>Wed, 15 May 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/website/projects/caa/</guid>
+      <guid>https://mishra39.github.io/website/projects/caa/</guid>
       
       <description></description>
       
@@ -20,10 +20,10 @@
     
     <item>
       <title>Safe Flight &amp; Landing in Confined Areas with Low SWaP-C Autonomy (Firefly)</title>
-      <link>http://localhost:1313/website/projects/low_swap_c_nea/</link>
+      <link>https://mishra39.github.io/website/projects/low_swap_c_nea/</link>
       <pubDate>Wed, 15 May 2024 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/website/projects/low_swap_c_nea/</guid>
+      <guid>https://mishra39.github.io/website/projects/low_swap_c_nea/</guid>
       
       <description></description>
       
@@ -31,10 +31,10 @@
     
     <item>
       <title>Autonomous soil sampling and analysis by ground-based robots</title>
-      <link>http://localhost:1313/website/projects/soil_sampling/</link>
+      <link>https://mishra39.github.io/website/projects/soil_sampling/</link>
       <pubDate>Fri, 01 Jan 2021 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/website/projects/soil_sampling/</guid>
+      <guid>https://mishra39.github.io/website/projects/soil_sampling/</guid>
       
       <description></description>
       
@@ -42,10 +42,10 @@
     
     <item>
       <title>Motion Planning for UAV Surveillance in Complex Environments</title>
-      <link>http://localhost:1313/website/projects/drone_inspection/</link>
+      <link>https://mishra39.github.io/website/projects/drone_inspection/</link>
       <pubDate>Sun, 20 Dec 2020 00:00:00 +0000</pubDate>
       
-      <guid>http://localhost:1313/website/projects/drone_inspection/</guid>
+      <guid>https://mishra39.github.io/website/projects/drone_inspection/</guid>
       
       <description>Github Link</description>
       
