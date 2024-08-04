@@ -1,0 +1,30 @@
+{{ define "main" }}
+<div class="projects-container">
+    <h1>{{ .Title }}</h1>
+    <div class="projects-grid">
+        {{ range .Pages }}
+        <div class="project-card">
+            <div class="project-image-container">
+                {{ $image := resources.Get .Params.image }}
+                {{ if $image }}
+                    {{ $image := $image.Resize "300x" }}
+                    <img src="{{ $image.RelPermalink }}" alt="{{ .Title }}" class="project-image">
+                {{ else }}
+                    <p>Image not found: {{ .Params.image }}</p>
+                {{ end }}
+                <div class="project-overlay">
+                    <div class="project-links">
+                        {{ if .Params.externalUrl }}
+                            <a href="{{ .Params.externalUrl }}" target="_blank" rel="noopener noreferrer" class="project-link">View Details</a>
+                        {{ else }}
+                            <a href="{{ .RelPermalink }}" class="project-link">View Details</a>
+                        {{ end }}
+                    </div>
+                </div>
+            </div>
+            <h3 class="project-title">{{ .Title }}</h3>
+        </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}
