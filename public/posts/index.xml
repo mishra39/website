@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on My Personal Website</title>
-    <link>https://mishra39.github.io/website/posts/</link>
+    <link>http://localhost:1313/website/posts/</link>
     <description>Recent content in Posts on My Personal Website</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 19 Jul 2024 07:28:02 -0400</lastBuildDate><atom:link href="https://mishra39.github.io/website/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 19 Jul 2024 07:28:02 -0400</lastBuildDate><atom:link href="http://localhost:1313/website/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Minimum Snap Trajectory Generation-Part 1</title>
-      <link>https://mishra39.github.io/website/posts/min-snap-part1/</link>
+      <link>http://localhost:1313/website/posts/min-snap-part1/</link>
       <pubDate>Fri, 19 Jul 2024 07:28:02 -0400</pubDate>
       
-      <guid>https://mishra39.github.io/website/posts/min-snap-part1/</guid>
+      <guid>http://localhost:1313/website/posts/min-snap-part1/</guid>
       
       <description>Minimum Snap Trajectory Generation-Part 1 👋Introduction In robotics, motion planning addresses the challenge of moving a robot from a starting point (point A) to a desired goal point (point B). The specific approach to motion planning depends heavily on the type of robot and its environment. For instance, the solution for an industrial robot arm&amp;rsquo;s end effector to reach a specific point will be vastly different from that needed for a quadcopter to navigate a complex environment.</description>
       
@@ -20,10 +20,10 @@
     
     <item>
       <title>AI as a Hype Tool</title>
-      <link>https://mishra39.github.io/website/posts/ai_hype_tool/</link>
+      <link>http://localhost:1313/website/posts/ai_hype_tool/</link>
       <pubDate>Tue, 24 Aug 2021 06:44:36 -0400</pubDate>
       
-      <guid>https://mishra39.github.io/website/posts/ai_hype_tool/</guid>
+      <guid>http://localhost:1313/website/posts/ai_hype_tool/</guid>
       
       <description>Link text</description>
       
@@ -31,10 +31,10 @@
     
     <item>
       <title>Introduction to Quantum Computers</title>
-      <link>https://mishra39.github.io/website/posts/quantum_computer_part1/</link>
+      <link>http://localhost:1313/website/posts/quantum_computer_part1/</link>
       <pubDate>Thu, 04 Jul 2019 06:57:54 -0400</pubDate>
       
-      <guid>https://mishra39.github.io/website/posts/quantum_computer_part1/</guid>
+      <guid>http://localhost:1313/website/posts/quantum_computer_part1/</guid>
       
       <description>Link text</description>
       
@@ -42,10 +42,10 @@
     
     <item>
       <title>Machine Learning 101</title>
-      <link>https://mishra39.github.io/website/posts/ml_intro/</link>
+      <link>http://localhost:1313/website/posts/ml_intro/</link>
       <pubDate>Mon, 03 Jun 2019 07:01:41 -0400</pubDate>
       
-      <guid>https://mishra39.github.io/website/posts/ml_intro/</guid>
+      <guid>http://localhost:1313/website/posts/ml_intro/</guid>
       
       <description>Link text</description>
       
@@ -53,10 +53,10 @@
     
     <item>
       <title>The &#34;Boring&#34; Solution to Traffic</title>
-      <link>https://mishra39.github.io/website/posts/traffic_congestion/</link>
+      <link>http://localhost:1313/website/posts/traffic_congestion/</link>
       <pubDate>Sun, 10 Feb 2019 07:03:44 -0400</pubDate>
       
-      <guid>https://mishra39.github.io/website/posts/traffic_congestion/</guid>
+      <guid>http://localhost:1313/website/posts/traffic_congestion/</guid>
       
       <description>Link text</description>
       

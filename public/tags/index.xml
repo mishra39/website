@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on My Personal Website</title>
-    <link>https://mishra39.github.io/website/tags/</link>
+    <link>http://localhost:1313/website/tags/</link>
     <description>Recent content in Tags on My Personal Website</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 15 May 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://mishra39.github.io/website/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 15 May 2024 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/website/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Motion Planning</title>
-      <link>https://mishra39.github.io/website/tags/motion-planning/</link>
+      <link>http://localhost:1313/website/tags/motion-planning/</link>
       <pubDate>Wed, 15 May 2024 00:00:00 +0000</pubDate>
       
-      <guid>https://mishra39.github.io/website/tags/motion-planning/</guid>
+      <guid>http://localhost:1313/website/tags/motion-planning/</guid>
       
       <description></description>
       
@@ -20,10 +20,10 @@
     
     <item>
       <title>ROS</title>
-      <link>https://mishra39.github.io/website/tags/ros/</link>
+      <link>http://localhost:1313/website/tags/ros/</link>
       <pubDate>Wed, 15 May 2024 00:00:00 +0000</pubDate>
       
-      <guid>https://mishra39.github.io/website/tags/ros/</guid>
+      <guid>http://localhost:1313/website/tags/ros/</guid>
       
       <description></description>
       
@@ -31,10 +31,10 @@
     
     <item>
       <title>C&#43;&#43;</title>
-      <link>https://mishra39.github.io/website/tags/c&#43;&#43;/</link>
+      <link>http://localhost:1313/website/tags/c&#43;&#43;/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://mishra39.github.io/website/tags/c&#43;&#43;/</guid>
+      <guid>http://localhost:1313/website/tags/c&#43;&#43;/</guid>
       
       <description></description>
       
@@ -42,10 +42,10 @@
     
     <item>
       <title>CUDA</title>
-      <link>https://mishra39.github.io/website/tags/cuda/</link>
+      <link>http://localhost:1313/website/tags/cuda/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://mishra39.github.io/website/tags/cuda/</guid>
+      <guid>http://localhost:1313/website/tags/cuda/</guid>
       
       <description></description>
       
@@ -53,10 +53,10 @@
     
     <item>
       <title>Python</title>
-      <link>https://mishra39.github.io/website/tags/python/</link>
+      <link>http://localhost:1313/website/tags/python/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://mishra39.github.io/website/tags/python/</guid>
+      <guid>http://localhost:1313/website/tags/python/</guid>
       
       <description></description>
       
@@ -64,10 +64,10 @@
     
     <item>
       <title>Robotics</title>
-      <link>https://mishra39.github.io/website/tags/robotics/</link>
+      <link>http://localhost:1313/website/tags/robotics/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://mishra39.github.io/website/tags/robotics/</guid>
+      <guid>http://localhost:1313/website/tags/robotics/</guid>
       
       <description></description>
       
@@ -75,10 +75,10 @@
     
     <item>
       <title>ROS 2</title>
-      <link>https://mishra39.github.io/website/tags/ros-2/</link>
+      <link>http://localhost:1313/website/tags/ros-2/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://mishra39.github.io/website/tags/ros-2/</guid>
+      <guid>http://localhost:1313/website/tags/ros-2/</guid>
       
       <description></description>
       

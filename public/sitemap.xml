@@ -2,67 +2,67 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://mishra39.github.io/website/</loc>
+    <loc>http://localhost:1313/website/</loc>
     <lastmod>2024-07-19T07:28:02-04:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/posts/min-snap-part1/</loc>
+    <loc>http://localhost:1313/website/posts/min-snap-part1/</loc>
     <lastmod>2024-07-19T07:28:02-04:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/posts/</loc>
+    <loc>http://localhost:1313/website/posts/</loc>
     <lastmod>2024-07-19T07:28:02-04:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/projects/caa/</loc>
+    <loc>http://localhost:1313/website/projects/caa/</loc>
     <lastmod>2024-05-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/tags/motion-planning/</loc>
+    <loc>http://localhost:1313/website/tags/motion-planning/</loc>
     <lastmod>2024-05-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/projects/</loc>
+    <loc>http://localhost:1313/website/projects/</loc>
     <lastmod>2024-05-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/tags/ros/</loc>
+    <loc>http://localhost:1313/website/tags/ros/</loc>
     <lastmod>2024-05-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/projects/low_swap_c_nea/</loc>
+    <loc>http://localhost:1313/website/projects/low_swap_c_nea/</loc>
     <lastmod>2024-05-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/tags/</loc>
+    <loc>http://localhost:1313/website/tags/</loc>
     <lastmod>2024-05-15T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/posts/ai_hype_tool/</loc>
+    <loc>http://localhost:1313/website/posts/ai_hype_tool/</loc>
     <lastmod>2021-08-24T06:44:36-04:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/projects/soil_sampling/</loc>
+    <loc>http://localhost:1313/website/projects/soil_sampling/</loc>
     <lastmod>2021-01-01T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/projects/drone_inspection/</loc>
+    <loc>http://localhost:1313/website/projects/drone_inspection/</loc>
     <lastmod>2020-12-20T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/posts/quantum_computer_part1/</loc>
+    <loc>http://localhost:1313/website/posts/quantum_computer_part1/</loc>
     <lastmod>2019-07-04T06:57:54-04:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/posts/ml_intro/</loc>
+    <loc>http://localhost:1313/website/posts/ml_intro/</loc>
     <lastmod>2019-06-03T07:01:41-04:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/posts/traffic_congestion/</loc>
+    <loc>http://localhost:1313/website/posts/traffic_congestion/</loc>
     <lastmod>2019-02-10T07:03:44-04:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/pages/about/</loc>
+    <loc>http://localhost:1313/website/pages/about/</loc>
   </url><url>
-    <loc>https://mishra39.github.io/website/tags/c&#43;&#43;/</loc>
+    <loc>http://localhost:1313/website/tags/c&#43;&#43;/</loc>
   </url><url>
-    <loc>https://mishra39.github.io/website/categories/</loc>
+    <loc>http://localhost:1313/website/categories/</loc>
   </url><url>
-    <loc>https://mishra39.github.io/website/tags/cuda/</loc>
+    <loc>http://localhost:1313/website/tags/cuda/</loc>
   </url><url>
-    <loc>https://mishra39.github.io/website/pages/</loc>
+    <loc>http://localhost:1313/website/pages/</loc>
   </url><url>
-    <loc>https://mishra39.github.io/website/pages/publications/</loc>
+    <loc>http://localhost:1313/website/pages/publications/</loc>
   </url><url>
-    <loc>https://mishra39.github.io/website/tags/python/</loc>
+    <loc>http://localhost:1313/website/tags/python/</loc>
   </url><url>
-    <loc>https://mishra39.github.io/website/tags/robotics/</loc>
+    <loc>http://localhost:1313/website/tags/robotics/</loc>
   </url><url>
-    <loc>https://mishra39.github.io/website/tags/ros-2/</loc>
+    <loc>http://localhost:1313/website/tags/ros-2/</loc>
   </url>
 </urlset>
