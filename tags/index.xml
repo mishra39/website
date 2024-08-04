@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on My Personal Website</title>
+    <link>https://mishra39.github.io/website/tags/</link>
+    <description>Recent content in Tags on My Personal Website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 15 May 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://mishra39.github.io/website/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Motion Planning</title>
+      <link>https://mishra39.github.io/website/tags/motion-planning/</link>
+      <pubDate>Wed, 15 May 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://mishra39.github.io/website/tags/motion-planning/</guid>
+      
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>ROS</title>
+      <link>https://mishra39.github.io/website/tags/ros/</link>
+      <pubDate>Wed, 15 May 2024 00:00:00 +0000</pubDate>
+      
+      <guid>https://mishra39.github.io/website/tags/ros/</guid>
+      
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>C&#43;&#43;</title>
+      <link>https://mishra39.github.io/website/tags/c&#43;&#43;/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://mishra39.github.io/website/tags/c&#43;&#43;/</guid>
+      
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>CUDA</title>
+      <link>https://mishra39.github.io/website/tags/cuda/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://mishra39.github.io/website/tags/cuda/</guid>
+      
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>Python</title>
+      <link>https://mishra39.github.io/website/tags/python/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://mishra39.github.io/website/tags/python/</guid>
+      
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>Robotics</title>
+      <link>https://mishra39.github.io/website/tags/robotics/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://mishra39.github.io/website/tags/robotics/</guid>
+      
+      <description></description>
+      
+    </item>
+    
+    <item>
+      <title>ROS 2</title>
+      <link>https://mishra39.github.io/website/tags/ros-2/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://mishra39.github.io/website/tags/ros-2/</guid>
+      
+      <description></description>
+      
+    </item>
+    
+  </channel>
+</rss>
