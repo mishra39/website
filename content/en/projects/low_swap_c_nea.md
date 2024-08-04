@@ -3,7 +3,7 @@ title: "Safe Flight & Landing in Confined Areas with Low SWaP-C Autonomy (Firefl
 date: 2024-05-15
 status: "Finished"
 technologies: ["Mapping", "Obstacle Avoidance"]
-image: "caa.jpg"
+image: "low_swap_c.gif"
 externalUrl: "https://www.youtube.com/watch?v=9koIUqpgJ14&ab_channel=NearEarthAutonomy"
 tags: ["motion planning", "ROS"]
 ---
