@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en-us"><head><script src="/website/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=website/livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="content-type" content="text/html">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title itemprop="name">Minimum Snap Trajectory Generation-Part 1 | My Personal Website</title>
+<meta property="og:title" content="Minimum Snap Trajectory Generation-Part 1 | My Personal Website" />
+<meta name="twitter:title" content="Minimum Snap Trajectory Generation-Part 1 | My Personal Website" />
+<meta itemprop="name" content="Minimum Snap Trajectory Generation-Part 1 | My Personal Website" />
+<meta name="application-name" content="Minimum Snap Trajectory Generation-Part 1 | My Personal Website" />
+<meta property="og:site_name" content="Akshit Mishra" />
+
+<meta name="description" content="Portfolio abd Blog">
+<meta itemprop="description" content="Portfolio abd Blog" />
+<meta property="og:description" content="Portfolio abd Blog" />
+<meta name="twitter:description" content="Portfolio abd Blog" />
+
+<meta property="og:locale" content="en-us" />
+<meta name="language" content="en-us" />
+
+  <link rel="alternate" hreflang="en-us" href="http://localhost:1313/website/posts/min-snap-part1/" title="English" />
+
+
+
+
+
+    
+    
+    
+
+    <meta property="og:type" content="article" />
+    <meta property="og:article:published_time" content=2024-07-19T07:28:02-0400 />
+    <meta property="article:published_time" content=2024-07-19T07:28:02-0400 />
+    <meta property="og:url" content="http://localhost:1313/website/posts/min-snap-part1/" />
+
+    
+    <meta property="og:article:author" content="Akshit Mishra" />
+    <meta property="article:author" content="Akshit Mishra" />
+    <meta name="author" content="Akshit Mishra" />
+    
+    
+
+    
+
+    <script defer type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "Article",
+        "headline": "Minimum Snap Trajectory Generation-Part 1",
+        "author": {
+        "@type": "Person",
+        "name": ""
+        },
+        "datePublished": "2024-07-19",
+        "description": "",
+        "wordCount":  2484 ,
+        "mainEntityOfPage": "True",
+        "dateModified": "2024-07-19",
+        "image": {
+        "@type": "imageObject",
+        "url": ""
+        },
+        "publisher": {
+        "@type": "Organization",
+        "name": "My Personal Website"
+        }
+    }
+    </script>
+
+
+<meta name="generator" content="Hugo 0.131.0">
+
+    
+
+    <link rel="canonical" href="http://localhost:1313/website/posts/min-snap-part1/">
+    <link href="/website/style.min.1b88d26b1baf30aa4e0e1473883b1b6dc27d2e48cbcf7dba34e9975bd4aba34f.css" rel="stylesheet">
+    <link href="/website/code-highlight.min.706d31975fec544a864cb7f0d847a73ea55ca1df91bf495fd12a177138d807cf.css" rel="stylesheet">
+
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/website/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/website/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/website/icons/favicon-16x16.png">
+    <link rel="mask-icon" href="/website/icons/safari-pinned-tab.svg">
+    <link rel="shortcut icon" href="/website/favicon.ico">
+
+
+
+
+<link rel="manifest" href="http://localhost:1313/website/site.webmanifest">
+
+<meta name="msapplication-config" content="/website/browserconfig.xml">
+<meta name="msapplication-TileColor" content="#2d89ef">
+<meta name="theme-color" content="#434648">
+
+    
+    <link rel="icon" type="image/svg+xml" href="/website/icons/favicon.svg">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    integrity="sha512-fHwaWebuwA7NSF5Qg/af4UeDx9XqUpYpOGgubo3yWu+b2IQR4UeQwbb42Ti7gVAjNtVoI/I9TEoYeu9omwcC6g==" crossorigin="anonymous" crossorigin="anonymous" />
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    integrity="sha512-LQNxIMR5rXv7o+b1l8+N1EZMfhG7iFZ9HhnbJkTp4zjNr5Wvst75AqUeFDxeRUa7l5vEDyUiAip//r+EFLLCyA=="
+    crossorigin="anonymous"></script>
+
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    integrity="sha512-iWiuBS5nt6r60fCz26Nd0Zqe0nbk1ZTIQbl3Kv7kYsX+yKMUFHzjaH2+AnM6vp2Xs+gNmaBAVWJjSmuPw76Efg==" crossorigin="anonymous" onload="renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+      ]
+    });"></script>
+</head>
+<body data-theme = "dark" class="notransition">
+
+<script src="/website/js/theme.js"></script>
+
+<div class="navbar" role="navigation">
+    <nav class="menu" aria-label="Main Navigation">
+        <a href="http://localhost:1313/website/" class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" 
+viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+stroke-linejoin="round" class="feather feather-home">
+<title>Home</title>
+<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+<polyline points="9 22 9 12 15 12 15 22"></polyline>
+</svg>
+        </a>
+        <input type="checkbox" id="menu-trigger" class="menu-trigger" />
+        <label for="menu-trigger">
+            <span class="menu-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" stroke="currentColor" fill="none" viewBox="0 0 14 14"><title>Menu</title><path stroke-linecap="round" stroke-linejoin="round" d="M10.595 7L3.40726 7"></path><path stroke-linecap="round" stroke-linejoin="round" d="M10.5096 3.51488L3.49301 3.51488"></path><path stroke-linecap="round" stroke-linejoin="round" d="M10.5096 10.4851H3.49301"></path><path stroke-linecap="round" stroke-linejoin="round" d="M0.5 12.5V1.5C0.5 0.947715 0.947715 0.5 1.5 0.5H12.5C13.0523 0.5 13.5 0.947715 13.5 1.5V12.5C13.5 13.0523 13.0523 13.5 12.5 13.5H1.5C0.947715 13.5 0.5 13.0523 0.5 12.5Z"></path></svg>
+            </span>
+        </label>
+
+        <div class="trigger">
+            <ul class="trigger-container">
+                
+                
+                <li>
+                    <a class="menu-link " href="/website/">
+                        Home
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link " href="/website/pages/about/">
+                        About
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link active" href="/website/posts/">
+                        Posts
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link " href="/website/projects/">
+                        Projects
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link " href="https://drive.google.com/file/d/1FliQxGKHBVWktKLTkgggSu3tUm7E2Y5q/view?usp=sharing">
+                        Resume
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link " href="/website/pages/publications/">
+                        Publications
+                    </a>
+                    
+                </li>
+                
+                <li class="menu-separator">
+                    <span>|</span>
+                </li>
+                
+                
+            </ul>
+            <a id="mode" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mode-sunny" width="21" height="21" viewBox="0 0 14 14" stroke-width="1">
+<title>LIGHT</title><g><circle cx="7" cy="7" r="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></circle><line x1="7" y1="0.5" x2="7" y2="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="2.4" x2="3.82" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="0.5" y1="7" x2="2.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="11.6" x2="3.82" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="7" y1="13.5" x2="7" y2="11.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="11.6" x2="10.18" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="13.5" y1="7" x2="11.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="2.4" x2="10.18" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line></g></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="mode-moon" width="21" height="21" viewBox="0 0 14 14" stroke-width="1">
+<title>DARK</title><g><circle cx="7" cy="7" r="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></circle><line x1="7" y1="0.5" x2="7" y2="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="2.4" x2="3.82" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="0.5" y1="7" x2="2.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="11.6" x2="3.82" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="7" y1="13.5" x2="7" y2="11.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="11.6" x2="10.18" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="13.5" y1="7" x2="11.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="2.4" x2="10.18" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line></g></svg>
+            </a>
+        </div>
+    </nav>
+</div>
+
+<div class="wrapper post">
+    <main class="page-content" aria-label="Content">
+        <article>
+            <header class="header">
+                <h1 class="header-title">Minimum Snap Trajectory Generation-Part 1</h1>
+                <div class="post-meta">
+                    
+                        
+                        <time datetime="2024-07-19T07:28:02-04:00" itemprop="datePublished"> Jul 19, 2024 </time>
+                    
+                    
+                    
+                    <span class="post-author">by 
+                        <a href="https://mishra39.github.io/website/" rel="noopener noreferrer">Akshit Mishra</a>
+                    </span>
+                </div>
+            </header>
+            
+    
+        
+            
+        
+    
+    <details class="toc" open>
+        <summary><b>Table of Contents</b></summary>
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">👋Introduction</a></li>
+    <li><a href="#overview">🕵️Overview</a></li>
+    <li><a href="#snap-whats-that">⚡Snap? What’s that?</a></li>
+    <li><a href="#differential-flatness-the-secret-sauce">🥫Differential Flatness: The secret sauce!</a>
+      <ul>
+        <li><a href="#from-theory-to-flight-how-flatness-simplifies-trajectory-planning">From Theory to Flight: How Flatness Simplifies Trajectory Planning</a></li>
+      </ul>
+    </li>
+    <li><a href="#minimum-snap-maximum-control">Minimum Snap, Maximum Control</a></li>
+    <li><a href="#formulation">🧪Formulation</a>
+      <ul>
+        <li><a href="#why-the-magic-number-7">Why the Magic number 7️⃣?</a></li>
+      </ul>
+    </li>
+    <li><a href="#what-we-know-what-we-dont-the-known-and-the-unknowns-of-the-problem">What We Know, What We Don&rsquo;t: The Known and the Unknowns of the problem</a></li>
+    <li><a href="#cost-function">🪙Cost Function</a></li>
+    <li><a href="#constraints">🔒Constraints</a>
+      <ul>
+        <li><a href="#derivative-constraints">Derivative Constraints</a></li>
+        <li><a href="#start-and-end-states-constraints">Start and End States Constraints</a></li>
+        <li><a href="#continuity-constraints">Continuity Constraints</a></li>
+        <li><a href="#constrained-qp-method-demo">Constrained QP Method Demo</a></li>
+      </ul>
+    </li>
+    <li><a href="#not-perfect-yet-issues-with-constrained-qp">Not perfect yet: Issues with Constrained QP</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+    <li><a href="#references">References</a></li>
+  </ul>
+</nav>
+    </details>
+            <div class="page-content">
+                <h1 id="minimum-snap-trajectory-generation-part-1">Minimum Snap Trajectory Generation-Part 1</h1>
+<h2 id="introduction">👋Introduction</h2>
+<p>In robotics, motion planning addresses the challenge of moving a robot from a starting point (point A) to a desired goal point (point B). The specific approach to motion planning depends heavily on the type of robot and its environment. For instance, the solution for an industrial robot arm&rsquo;s end effector to reach a specific point will be vastly different from that needed for a quadcopter to navigate a complex environment.</p>
+<img src="https://moveit.picknik.ai/humble/_images/grasp_pipeline_demo.gif" alt="Grasp Planning for a robot arm" width="400"/>
+<p><em>Grasp Planning for a robot arm.
+Source: <a href="https://moveit.picknik.ai">https://moveit.picknik.ai</a></em></p>
+<img src="https://github.com/HKUST-Aerial-Robotics/Fast-Planner/blob/master/files/icra20_3.gif?raw=true" alt="FAST Planner" width="400"/>
+<p><em>Motion Planning for a quadcopter.
+Source: <a href="https://github.com/HKUST-Aerial-Robotics/Fast-Planner">https://github.com/HKUST-Aerial-Robotics/Fast-Planner</a></em></p>
+<p>Consequently, a motion planning strategy ideal for a robotic arm performing a pick-and-place operation wouldn&rsquo;t translate well to a quadrotor navigating a forest. This highlights the importance of considering factors like the robot&rsquo;s dynamics and environmental constraints when choosing the most effective motion planning approach.</p>
+<p>In this blog, we&rsquo;ll delve into generating efficient and dynamically feasible trajectories specifically for quadrotors using <strong>Minimum Snap</strong>.</p>
+<h2 id="overview">🕵️Overview</h2>
+<p>First we are going to look at approach [Mellinger et al., 2011] that generates minimum snap trajectory using a constrained Quadratic Programming (QP) formulation by leveraging the differential flatness property of quadrotors. After that we are going to look at the limitations of this approach and see how [Richter et al., 2016] builds on this idea and alleviates some of the issues by using an Unconstrained QP approach.
+But first let’s understand Snap.</p>
+<h2 id="snap-whats-that">⚡Snap? What’s that?</h2>
+<p><img alt="Fast" src="/website/posts/min-snap-part1/oh_snap.webp"></p>
+<p>In Motion planning, Snap refers to the fourth derivative of position, the second derivative of acceleration, or the third derivative of velocity.
+So, why not just focus on minimizing acceleration? Minimizing acceleration is definitely important, but it&rsquo;s not the whole story. Let&rsquo;s delve deeper and discover why snap plays a crucial role in generating smooth and efficient trajectories for robots!</p>
+<p><strong>😭Velocity</strong>: Minimizing velocity can lead to huge jumps in acceleration, which could result in sudden start and stops.</p>
+<img src="https://media4.giphy.com/media/4aRCnf3LuPnRzlEE6A/200w.gif?cid=6c09b952s9e78bayjxdtfag9x7cymxrdp2e5xr2mqlhxp0kp&ep=v1_videos_search&rid=200w.gif&ct=v" alt= "Sudden Stop" width="300"/>
+<p><em>Minimizing only velocity can lead to sudden and unsafe braking</em></p>
+<p>😓 <strong>Acceleration</strong>: Minimizing acceleration can lead to discontinuous jumps in jerk, which would result in jerk motion. This is not suitable for applications where tracking is important.</p>
+<img src="https://media.tenor.com/PiLg9bsD7NYAAAAM/car.gif" alt="Vehicle shaking" width="300" />
+<p><em>Focusing only on acceleration can sometimes lead to jumps in jerk causing damange to vehicle componenets</em></p>
+<p>🙂 <strong>Jerk</strong>: There are some approaches that minimize jerk. Specifically, in applications for tracking, minimizing jerk might be enough and is less computationally intensive than minimizing snap. However, minimizing snap takes it a step further and generates even smoother flight profiles. This is important when flying with delicate cargo or trying to generate efficient motion profiles.</p>
+<img src="https://www.diyphotography.net/wp-content/uploads/2017/03/follow_mode.gif" alt="Drone tracking a target" width="400"/>
+<p><em>Minimizing jerk is a good approach for tracking targets</em></p>
+<p>😃 <strong>Snap</strong>
+There are a lot of inherent advantages of minimizing snap over minimizing velocity and acceleration so let’s look and understand some of the most significant ones.</p>
+<p>Continuity in control inputs
+Snap-minimized trajectories ensure continuity up to the third derivative of position (jerk), which means the control inputs required to follow the trajectory will be continuous.
+Compatibility with differential flatness:
+Quadrotor dynamics are differentially flat with respect to the position and yaw angle. Minimizing snap aligns well with this property, making it easier to generate dynamically feasible trajectories.
+Continuity in control inputs:
+Snap-minimized trajectories ensure continuity up to the third derivative of position (jerk), which means the control inputs required to follow the trajectory will be continuous.
+This is particularly important for aggressive maneuvers where discontinuities in lower-order derivatives could lead to instability.</p>
+<p>These properties help generate smooth and elegant trajectories for quadcopters when minimizing snap. Furthermore, minimizing snap also helps reduce the stress on actuators by preventing sudden changes in thrust.</p>
+<p><img alt="DIF FPV Smooth" src="https://images.squarespace-cdn.com/content/v1/58fd838a9f7456e0b92a446a/1615414861152-U322WCC9G8ERL5TVF9YH/170-drone-video.gif"></p>
+<p><em>Minimizing Snap creates elegant motion profiles</em></p>
+<h2 id="differential-flatness-the-secret-sauce">🥫Differential Flatness: The secret sauce!</h2>
+<p>Differential flatness is a potent concept in control theory that can be applied to the trajectory optimization problem for quadrotors to generate dynamically feasible trajectories.</p>
+<p>A set of variables in a system is considered differentially flat if we can reconstruct all the system&rsquo;s states and control inputs using just a chosen few of these variables and their derivatives. It might sound like a magic trick, but there&rsquo;s a clear logic behind it! Let&rsquo;s unravel this concept with the help of a quadrotor model example.</p>
+<p><img alt="Differential Flatness" src="/website/posts/min-snap-part1/diff_flat.jpg"></p>
+<p>For a quadrotor, if we pick the 3D position (x, y, z) and yaw angle (ψ) as our flat outputs, then remarkably, we can express all other states (velocity, acceleration, etc.) and the control input (motor thrust) as functions of these chosen flat outputs and their derivatives.</p>
+<p>Let’s look at some straightforward equations to drive this point home.</p>
+<ul>
+<li><strong>Flat outputs</strong>: [x,y,z,ψ]</li>
+<li><strong>States</strong>
+<ul>
+<li>
+<p>Velocity: v = [ẋ, ẏ, ż] is just the first order derivative of flat outputs  x, y, z</p>
+</li>
+<li>
+<p>Acceleration: a = [ẍ, ÿ, z̈] is just the second order derivative of  x, y, z.</p>
+</li>
+<li>
+<p>Roll: $\varphi = \sin^{-1} \left( \frac{\ddot{x} \sin \psi - \ddot{y} \cos \psi}{g} \right)
+$</p>
+</li>
+<li>
+<p>Pitch: $\theta = \sin^{-1} \left( \frac{\ddot{x} \cos \psi + \ddot{y} \sin \psi}{g \cos \varphi} \right)
+$</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>Jerk and Snap can be represented in a similar way. To drive the point home further, we can look at attitude equations above that show  roll and pitch can also be represented just using the derivatives of the differentially flat variables we chose.</p>
+<h3 id="from-theory-to-flight-how-flatness-simplifies-trajectory-planning">From Theory to Flight: How Flatness Simplifies Trajectory Planning</h3>
+<p>The gargantuan advantage of the differential flatness property is that we don’t have to optimize over the entire state space. We can just solve for the flat outputs (x,y,z, yaw) and the rest of the states and inputs can be obtained using the equations above.</p>
+<p>And it doesn’t stop there! This property also ensures that the generated trajectories are <strong>dynamically feasible</strong>. This is due to the fact that whatever values we obtain for the inputs using the flat output variables are calculated using the dynamics of the system. Let’s look at the example below to fully grasp this concept.</p>
+<p>Let’s say we solve for flat outputs X = [x, y, z, ѱ]. Then we can obtain the states (velocity, acceleration, ..etc.) and inputs (Thrust from motors) using these values as shown above.
+After computing acceleration, we can use that to calculate Thrust as:</p>
+<p>$$
+T = m \sqrt{\ddot{x}^2 + \ddot{y}^2 + (\ddot{z} + g)^2}
+$$</p>
+<p>Since acceleration, Thrust and other states (pitch,roll,etc.) are computed using the equations of motion, the generated trajectories are guaranteed to be dynamically feasible.</p>
+<h2 id="minimum-snap-maximum-control">Minimum Snap, Maximum Control</h2>
+<p>Now, let’s do what we came here for and understand the problem setup for minimum snap trajectory generation.</p>
+<ul>
+<li>
+<p><strong>Objective:</strong> Generate a minimum snap trajectory for a quadcopter.</p>
+</li>
+<li>
+<p><strong>Inputs:</strong></p>
+<ol>
+<li>3D position of waypoints.</li>
+<li>Boundary conditions: Desired velocities and acceleration for start and end point</li>
+<li>Maximum velocity of the quadcopter.</li>
+</ol>
+</li>
+<li>
+<p><strong>Constraints:</strong></p>
+<ol>
+<li>Fixed start and end states.</li>
+<li>Trajectory passes through the waypoints</li>
+</ol>
+</li>
+<li>
+<p><strong>Notation:</strong></p>
+<p><img alt="Notation" src="/website/posts/min-snap-part1/notation.jpeg">
+The notation in the rest of this article to show trajectory terms is defined above. For instance, $x^{2}_{0,1}$ represents the 2nd derivative (acceleration) for segment 1 at time 0.</p>
+</li>
+</ul>
+<p><img alt="Notation" src="/website/posts/min-snap-part1/wpts.png">
+<em>For our example we have 3 waypoints with 2 segments connecting the waypoints</em></p>
+<h2 id="formulation">🧪Formulation</h2>
+<p>The first step is to represent our desired trajectory using a polynomial equation. In order to minimize snap we need at least a seventh degree polynomial as shown below.</p>
+<p>$$
+f(t) = p_7 t^7 + p_6 t^6 + p_5 t^5 + p_4 t^4 + p_3 t^3 + p_2 t^2 + p_1 t + p_0
+$$</p>
+<h3 id="why-the-magic-number-7">Why the Magic number 7️⃣?</h3>
+<p>The reason we need at least a 7th degree polynomial to solve for a minimum snap trajectory is due to the number of unknown boundary conditions (explained in more detail later).
+For minimizing snap over segment, we need to solve for the following variables at the start and end points:</p>
+<ol>
+<li>Position (0th derivative)</li>
+<li>Velocity (1st derivative)</li>
+<li>Acceleration (2nd derivative)</li>
+</ol>
+<p>The total unknowns are 6 (3 for each start and end waypoint of each segment). Moreover, we can strategically set certain coefficients to zero based on the chosen boundary conditions (e.g., setting jerk to zero at the beginning). This allows us to use a 7th-degree polynomial to represent a minimum snap trajectory with 7 unknowns.</p>
+<p>For our example, let&rsquo;s break down the trajectory into segments. The polynomial for each segment i is represented by a polynomial $f(t)$ as shown below.
+<img alt="Segments" src="/website/posts/min-snap-part1/segments_wpts.png"></p>
+<p>We assume each segment starts at time $T_{i-1}$ and ends at time $T_i$, i.e time interval for segment i, $t_i ∊ [T_{i-1}, T_i]$. For now let’s assume the time interval is fixed for each segment. In the next part of this blog, we will see how we can optimize for this parameter as well. The equation below shows one possible way to compute the time for a segment i using the distance between waypoints and the maximum velocity of the vehicle.</p>
+<p>$$T = \frac{||(x_1, y_1) - (x_2, y_2)||}{V_{max}}
+$$</p>
+<h2 id="what-we-know-what-we-dont-the-known-and-the-unknowns-of-the-problem">What We Know, What We Don&rsquo;t: The Known and the Unknowns of the problem</h2>
+<p>It is crucial to understand the known and unknown entities. As shown in the figure below, we know the positions of all the waypoints and we can also set the desired velocities and accelerations for the start and end waypoints.
+<img alt="knowns_unknowns" src="/website/posts/min-snap-part1/knwons_unknowns.png"></p>
+<p>This brings us to the more interesting part, THE UNKNOWNS!</p>
+<img src="https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExejF0dGtwazh1dXBleXJndmQxdmZtMXBrN2ppN3E2M2ZwdWgwanQwYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/UuGjHrJw6JB4aFHU15/giphy.gif" alt="the_unknown" width="480" />
+<p>Let&rsquo;s zoom out and consider the bigger picture of trajectory generation. We aim to utilize provided waypoints to design a smooth motion path for the quadcopter to follow. This translates to pinpointing the exact velocities, accelerations, and so on, that the drone needs to maintain at each waypoint. While we typically have the desired values for the start and end points, the challenge lies in determining the first-order and higher derivatives (velocity, acceleration, etc.) for the intermediate waypoints. In our simple example above, there&rsquo;s only one such intermediate point: waypoint 2.</p>
+<h2 id="cost-function">🪙Cost Function</h2>
+<p>We need to provide a cost function for every optimization problem. This function guides the optimizer as it tries to minimize the value of this function at all times. As we are trying to minimize snap, our cost function will be the square of the fourth-order derivative (snap) of our polynomial trajectory $f(t)$. The construction of the cost function and matrix Qk is shown below.</p>
+<p><img alt="Cost Function" src="/website/posts/min-snap-part1/cost.png"></p>
+<p>The matrix form for the cost function can be represented as shown here.</p>
+<p><img alt="Cost Function" src="/website/posts/min-snap-part1/cost_mat.png">
+where,
+</br>
+<strong>M:</strong> number of segments</p>
+<p>Building on the equations presented earlier, we calculate the fourth-order derivative using the general formula for the $i^{th}$ derivative. To achieve a more robust cost function, we then square the resulting equation. Finally, we integrate this squared term over the entire segment&rsquo;s trajectory.</p>
+<h2 id="constraints">🔒Constraints</h2>
+<h3 id="derivative-constraints">Derivative Constraints</h3>
+<ul>
+<li>Waypoint Constraint
+</br>
+This constraint ensures that the trajectory passes through the mission waypoints provided as inputs to the problem. For our example, it looks something like this:
+<ol>
+<li>For segment 1, position at time 0 should be at waypoint 1 (P1) and waypoint 2 (P2) at time $T_1$. From the polynomial equation above we get:
+$$f^0_{1,0} = P_1 = p_7*(0) + p_6*(0) + p_5*(0) + p_4*(0) + p_3*(0) + p_2*(0) + p_1*(0) + p_0
+$$
+$$f^0_{1,0} = P_1 = p_0$$
+$$f^0_{1,T_1} = P_2 = p_7*(T_1) + p_6*(T_1) + p_5*(T_1) + p_4*(T_1) + p_3*(T_1) + p_2*(T_1) + p_1*(T_1) + p_0
+$$
+</br>
+Combining this for all the waypoints in our example we get:</li>
+</ol>
+</li>
+</ul>
+<p>$ \begin{bmatrix}
+f^0_{1,0}\
+f^0_{1,T_1}\
+f^0_{2,0}\
+f^0_{2,T_2}
+\end{bmatrix} = \begin{bmatrix}
+P_1 \
+P_2 \
+P_2 \
+P_3
+\end{bmatrix}
+$</p>
+<h3 id="start-and-end-states-constraints">Start and End States Constraints</h3>
+<p>Next we want to ensure that the quadcopter has desired states at start and end points of the trajectory. This can be represented as shown below.</p>
+<p>$ \begin{bmatrix}
+f^1_{1,0}\
+f^2_{1,0}\
+\vdots \
+f^k_{1,0} \
+\
+f^1_{2,T}\
+f^2_{2,T}\
+\vdots \
+f^k_{2,T}
+\end{bmatrix} = \begin{bmatrix}
+v_0 \
+a_0 \
+\vdots \
+v_2 \
+a_2 \
+\vdots \
+p^k_2
+\end{bmatrix}
+$
+</br>
+where,
+$v_i$, $a_i$ are the velocity and acceleration for $i^th$ segment and $p^k_2$ is the kth derivative of the polynomial.</p>
+<p>In our example, we want to start and end at zero velocity and acceleration.</p>
+<p>Velocity and acceleration  for segment 1 at $T = 0$:</p>
+<p>$$f^1_{1,0} = p_1 = 0 $$
+$$f^2_{1,0} = 2 * p_2=0$$</p>
+<p>Finally, the generalized form of $i^th$ derivative of the polynomial is shown below along with the construction of the constraint matrix A.</p>
+<p><img alt="Waypoint_Constraint" src="/website/posts/min-snap-part1/wpt_mat_con.png"></p>
+<p>where,</br>
+$A_j$: constraint mapping matrix </br>
+$p_j$: matrix of polynomial coefficients</br>
+$d_j$: derivative matrix</p>
+<h3 id="continuity-constraints">Continuity Constraints</h3>
+<p>Because we optimize each trajectory segment independently, we must guarantee a smooth transition between segments. This is achieved by enforcing continuity constraints, ensuring that the polynomial and its derivatives match at the connection points between segments. In our example, this constraint applies to waypoint 2, an intermediate waypoint.</p>
+<p><img alt="Continuity_constraint" src="/website/posts/min-snap-part1/cont_cons.jpg"></p>
+<p>The set of equations below capture this constraint by ensuring that the polynomial trajectory and its derivatives have the same value at time Tj (T1 for our example) when we switch from segment 1 to segment 2 polynomial coefficients.</p>
+<p><img alt="Continuity_constraint_eq" src="/website/posts/min-snap-part1/cont_cons_eq.png">
+<img alt="Continuity_constraint_eq" src="/website/posts/min-snap-part1/cont_cons_mat.png"></p>
+<p>This leads us to our <strong>constrained QP formulation.</strong>
+<img alt="Constrained QP" src="/website/posts/min-snap-part1/const_qp.png"></p>
+<p>The constrained QP solves for the coefficients of the polynomial trajectory for each segment while minimizing the cost function and satisfying the previously discussed criteria. Note that the criteria are represented as equality constraints.
+</br>
+Once we find $p_{i,j}$ for each segment i, we can simply plugin the time values in equation $f^k(t)$ to find the value of the trajectory or its derivative at that instant t.</p>
+<h3 id="constrained-qp-method-demo">Constrained QP Method Demo</h3>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/MvRTALJp8DM?si=r7heCvWbiloR2J2e" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<h2 id="not-perfect-yet-issues-with-constrained-qp">Not perfect yet: Issues with Constrained QP</h2>
+<p>Although this setup of using constrained QP to generate minimum snap trajectories is a great starting point, it certainly has some major flaws. In Part 2 of this article, we’ll see how <strong><em>[Richter et al., 2016]</em></strong> solves these issues by generating a more robust formulation. Some of the issues with the current constrained QP are discussed below.</p>
+<ul>
+<li>
+<p><strong>No closed-form solution:</strong>
+This method of constrained QP with equality constraints to generate minimum snap trajectories works well for only single segments and short trajectories. It quickly becomes problematic to use for multiple segments represented with high-order polynomials.</p>
+</li>
+<li>
+<p><strong>Numerical Instability:</strong>
+The variables being optimized for are the coefficients of the polynomials. This can lead to numerical stability issues as these coefficients can be quite small in values, which can cause issues when inverting matrices.</p>
+</li>
+<li>
+<p><strong>No time allocation:</strong>
+This setup requires us to know  the time allocation (T1, T2) for each trajectory in advance. However, to generate fast and smooth motions we also need to optimize for the time variable T for each segment.</p>
+</li>
+</ul>
+<h2 id="conclusion">Conclusion</h2>
+<p>In this article, we reviewed <strong><em>[Mellinger et al., 2011]</em></strong> approach on how to generate minimum snap trajectories using the differential flatness properties of a quadrotor. We also covered how to construct the cost matrix Q and the constraint matrix A based on the problem setup.
+In the next article, we will see how <strong><em>[Richter et al., 2016]</em></strong> builds on this approach to generate even faster and more robust minimum snap trajectories using an unconstrained QP formulation.</p>
+<iframe src="https://giphy.com/embed/xUPGcyuPRNjODvvOFO" width="319" height="480" style="" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/coffee-skateboarding-rad-xUPGcyuPRNjODvvOFO">via GIPHY</a></p>
+<h2 id="references">References</h2>
+<ol>
+<li>
+<p>Mellinger, Daniel, and Vijay Kumar. &ldquo;Minimum snap trajectory generation and control for quadrotors.&rdquo; 2011 IEEE international conference on robotics and automation. IEEE, 2011.</p>
+</li>
+<li>
+<p>Richter, Charles, Adam Bry, and Nicholas Roy. &ldquo;Polynomial trajectory planning for aggressive quadrotor flight in dense indoor environments.&rdquo; Robotics Research: The 16th International Symposium ISRR. Springer International Publishing, 2016.</p>
+</li>
+<li>
+<p><a href="https://gaowenliang.github.io/HKUST-ELEC5660-Introduction-to-Aerial-Robots/project/project.html">Introduction to Aerial Robotics</a></p>
+</li>
+</ol>
+
+            </div>
+        </article></main>
+</div>
+<footer class="footer">
+    <span class="footer_item"> </span>
+    &nbsp;
+
+    <div class="footer_social-icons">
+<a href="https://github.com/mishra39" target="_blank" rel="noopener noreferrer me"
+    title="Github">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path
+        d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+    </path>
+</svg>
+</a>
+<a href="https://www.linkedin.com/in/akshitmishra/" target="_blank" rel="noopener noreferrer me"
+    title="Linkedin">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+    <rect x="2" y="9" width="4" height="12"></rect>
+    <circle cx="4" cy="4" r="2"></circle>
+</svg>
+</a>
+<a href="https://twitter.com" target="_blank" rel="noopener noreferrer me"
+    title="Twitter">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path
+        d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z">
+    </path>
+</svg>
+</a>
+</div>
+    <small class="footer_copyright">
+        © 2024 Akshit Mishra.
+        
+    </small>
+</footer><a href="#" title="Go to top" id="totop">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" stroke="currentColor" viewBox="0 96 960 960">
+    <path d="M283 704.739 234.261 656 480 410.261 725.739 656 677 704.739l-197-197-197 197Z"/>
+</svg>
+
+</a>
+
+
+    
+
+
+
+
+    
+    
+        
+    
+
+    
+    
+        
+    
+
+
+
+    
+    <script async src="http://localhost:1313/website/js/main.js" ></script>
+
+    
+
+</body>
+</html>
