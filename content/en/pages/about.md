@@ -21,7 +21,7 @@ Currently, I am working on integrating and enhancing a perception-aware motion p
 I hold a Master of Science in Controls and Robotics-Mechanical Engineering Research from Carnegie Mellon University, where I served as a Research Assistant at the [Robomechanics Lab](https://www.cmu.edu/me/robomechanicslab/). My research focused on employing advanced computer vision algorithms for path planning in challenging environments and leveraging low-level controllers to execute the desired paths. Part of my work also involved hardware integration of robotic platforms to ensure they possess the required level of sensing capabilities.
 
 <figure style="text-align:center">
-  <img src="https://github.com/mishra39/website/blob/main/assets/patrick_robot.png?raw=true" alt="Patrick" width="500"/>
+  <img src="https://github.com/mishra39/website/blob/main/assets/patrick_robot.jpg" alt="Patrick" width="500"/>
   <figcaption>Autonomous Agricultural Sampling Robot Developed at CMU Robomechanics Lab</figcaption>
 </figure>
 
