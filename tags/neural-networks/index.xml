@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Neural Networks on My Personal Website</title>
+    <link>https://mishra39.github.io/website/tags/neural-networks/</link>
+    <description>Recent content in Neural Networks on My Personal Website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 18 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://mishra39.github.io/website/tags/neural-networks/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Adding Loop Closures to Thermal Odometry (TP-TIO)</title>
+      <link>https://mishra39.github.io/website/projects/thermal_inertial_slam/</link>
+      <pubDate>Thu, 18 Mar 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://mishra39.github.io/website/projects/thermal_inertial_slam/</guid>
+      
+      <description></description>
+      
+    </item>
+    
+  </channel>
+</rss>
