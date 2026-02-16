@@ -9,7 +9,10 @@ tocOpen = true
 # DDPM--Key Implementation Details & Takeaways
 ![alt text](assets/ddpm_10x.gif)
 
-### Medium Link: https://medium.com/@akshitmishra1995/what-to-expect-55891597736f
+- Medium Link: https://medium.com/@akshitmishra1995/what-to-expect-55891597736f
+
+- Code: https://github.com/mishra39/diffusion_models/tree/main/DDPM
+
 
 
 ## What to Expect?
