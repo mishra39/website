@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en-us"><head><meta charset="utf-8">
+<meta http-equiv="content-type" content="text/html">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title itemprop="name">DDPM--Key Implementation Details &amp; Takeaways | My Personal Website</title>
+<meta property="og:title" content="DDPM--Key Implementation Details &amp; Takeaways | My Personal Website" />
+<meta name="twitter:title" content="DDPM--Key Implementation Details &amp; Takeaways | My Personal Website" />
+<meta itemprop="name" content="DDPM--Key Implementation Details &amp; Takeaways | My Personal Website" />
+<meta name="application-name" content="DDPM--Key Implementation Details &amp; Takeaways | My Personal Website" />
+<meta property="og:site_name" content="Akshit Mishra" />
+
+<meta name="description" content="Portfolio abd Blog">
+<meta itemprop="description" content="Portfolio abd Blog" />
+<meta property="og:description" content="Portfolio abd Blog" />
+<meta name="twitter:description" content="Portfolio abd Blog" />
+
+<meta property="og:locale" content="en-us" />
+<meta name="language" content="en-us" />
+
+  <link rel="alternate" hreflang="en-us" href="https://mishra39.github.io/website/posts/ddpm/" title="English" />
+
+
+
+
+
+    
+    
+    
+
+    <meta property="og:type" content="article" />
+    <meta property="og:article:published_time" content=2026-02-15T12:00:00-0500 />
+    <meta property="article:published_time" content=2026-02-15T12:00:00-0500 />
+    <meta property="og:url" content="https://mishra39.github.io/website/posts/ddpm/" />
+
+    
+    <meta property="og:article:author" content="Akshit Mishra" />
+    <meta property="article:author" content="Akshit Mishra" />
+    <meta name="author" content="Akshit Mishra" />
+    
+    
+
+    
+
+    <script defer type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "Article",
+        "headline": "DDPM--Key Implementation Details \u0026 Takeaways",
+        "author": {
+        "@type": "Person",
+        "name": ""
+        },
+        "datePublished": "2026-02-15",
+        "description": "",
+        "wordCount":  1692 ,
+        "mainEntityOfPage": "True",
+        "dateModified": "2026-02-15",
+        "image": {
+        "@type": "imageObject",
+        "url": ""
+        },
+        "publisher": {
+        "@type": "Organization",
+        "name": "My Personal Website"
+        }
+    }
+    </script>
+
+
+<meta name="generator" content="Hugo 0.123.4">
+
+    
+
+    <link rel="canonical" href="https://mishra39.github.io/website/posts/ddpm/">
+    <link href="/website/style.min.1b88d26b1baf30aa4e0e1473883b1b6dc27d2e48cbcf7dba34e9975bd4aba34f.css" rel="stylesheet">
+    <link href="/website/code-highlight.min.706d31975fec544a864cb7f0d847a73ea55ca1df91bf495fd12a177138d807cf.css" rel="stylesheet">
+
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/website/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/website/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/website/icons/favicon-16x16.png">
+    <link rel="mask-icon" href="/website/icons/safari-pinned-tab.svg">
+    <link rel="shortcut icon" href="/website/favicon.ico">
+
+
+
+
+<link rel="manifest" href="https://mishra39.github.io/website/site.webmanifest">
+
+<meta name="msapplication-config" content="/website/browserconfig.xml">
+<meta name="msapplication-TileColor" content="#2d89ef">
+<meta name="theme-color" content="#434648">
+
+    
+    <link rel="icon" type="image/svg+xml" href="/website/icons/favicon.svg">
+
+    
+    </head>
+<body data-theme = "dark" class="notransition">
+
+<script src="/website/js/theme.min.8961c317c5b88b953fe27525839672c9343f1058ab044696ca225656c8ba2ab0.js" integrity="sha256-iWHDF8W4i5U/4nUlg5ZyyTQ/EFirBEaWyiJWVsi6KrA="></script>
+
+<div class="navbar" role="navigation">
+    <nav class="menu" aria-label="Main Navigation">
+        <a href="https://mishra39.github.io/website/" class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" 
+viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+stroke-linejoin="round" class="feather feather-home">
+<title>Home</title>
+<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+<polyline points="9 22 9 12 15 12 15 22"></polyline>
+</svg>
+        </a>
+        <input type="checkbox" id="menu-trigger" class="menu-trigger" />
+        <label for="menu-trigger">
+            <span class="menu-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" stroke="currentColor" fill="none" viewBox="0 0 14 14"><title>Menu</title><path stroke-linecap="round" stroke-linejoin="round" d="M10.595 7L3.40726 7"></path><path stroke-linecap="round" stroke-linejoin="round" d="M10.5096 3.51488L3.49301 3.51488"></path><path stroke-linecap="round" stroke-linejoin="round" d="M10.5096 10.4851H3.49301"></path><path stroke-linecap="round" stroke-linejoin="round" d="M0.5 12.5V1.5C0.5 0.947715 0.947715 0.5 1.5 0.5H12.5C13.0523 0.5 13.5 0.947715 13.5 1.5V12.5C13.5 13.0523 13.0523 13.5 12.5 13.5H1.5C0.947715 13.5 0.5 13.0523 0.5 12.5Z"></path></svg>
+            </span>
+        </label>
+
+        <div class="trigger">
+            <ul class="trigger-container">
+                
+                
+                <li>
+                    <a class="menu-link " href="/website/">
+                        Home
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link " href="/website/pages/about/">
+                        About
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link active" href="/website/posts/">
+                        Posts
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link " href="/website/projects/">
+                        Projects
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link " href="https://drive.google.com/file/d/1FliQxGKHBVWktKLTkgggSu3tUm7E2Y5q/view?usp=sharing">
+                        Resume
+                    </a>
+                    
+                </li>
+                
+                <li>
+                    <a class="menu-link " href="/website/pages/publications/">
+                        Publications
+                    </a>
+                    
+                </li>
+                
+                <li class="menu-separator">
+                    <span>|</span>
+                </li>
+                
+                
+            </ul>
+            <a id="mode" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" class="mode-sunny" width="21" height="21" viewBox="0 0 14 14" stroke-width="1">
+<title>LIGHT</title><g><circle cx="7" cy="7" r="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></circle><line x1="7" y1="0.5" x2="7" y2="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="2.4" x2="3.82" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="0.5" y1="7" x2="2.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="11.6" x2="3.82" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="7" y1="13.5" x2="7" y2="11.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="11.6" x2="10.18" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="13.5" y1="7" x2="11.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="2.4" x2="10.18" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line></g></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="mode-moon" width="21" height="21" viewBox="0 0 14 14" stroke-width="1">
+<title>DARK</title><g><circle cx="7" cy="7" r="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></circle><line x1="7" y1="0.5" x2="7" y2="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="2.4" x2="3.82" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="0.5" y1="7" x2="2.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="2.4" y1="11.6" x2="3.82" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="7" y1="13.5" x2="7" y2="11.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="11.6" x2="10.18" y2="10.18" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="13.5" y1="7" x2="11.5" y2="7" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><line x1="11.6" y1="2.4" x2="10.18" y2="3.82" fill="none" stroke-linecap="round" stroke-linejoin="round"></line></g></svg>
+            </a>
+        </div>
+    </nav>
+</div>
+
+<div class="wrapper post">
+    <main class="page-content" aria-label="Content">
+        <article>
+            <header class="header">
+                <h1 class="header-title">DDPM--Key Implementation Details &amp; Takeaways</h1>
+                <div class="post-meta">
+                    
+                        
+                        <time datetime="2026-02-15T12:00:00-05:00" itemprop="datePublished"> Feb 15, 2026 </time>
+                    
+                    
+                    
+                    <span class="post-author">by 
+                        <a href="https://mishra39.github.io/website/" rel="noopener noreferrer">Akshit Mishra</a>
+                    </span>
+                </div>
+            </header>
+            
+    
+        
+            
+        
+    
+    <details class="toc" open>
+        <summary><b>Table of Contents</b></summary>
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#medium-link-httpsmediumcomakshitmishra1995what-to-expect-55891597736f">Medium Link: <a href="https://medium.com/@akshitmishra1995/what-to-expect-55891597736f">https://medium.com/@akshitmishra1995/what-to-expect-55891597736f</a></a></li>
+      </ul>
+    </li>
+    <li><a href="#what-to-expect">What to Expect?</a></li>
+    <li><a href="#diffusion">Diffusion</a></li>
+    <li><a href="#intuition">Intuition</a></li>
+    <li><a href="#why-do-we-care">Why do we care?</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#model-architecture">Model Architecture</a></li>
+    <li><a href="#time-embeddings-teaching-the-network-about-noise-levels">Time Embeddings: Teaching the Network About Noise Levels</a>
+      <ul>
+        <li><a href="#encoder-vs-decoder-resnet-blocks">Encoder vs. Decoder ResNet blocks</a></li>
+        <li><a href="#skip-connections">Skip Connections</a></li>
+      </ul>
+    </li>
+    <li><a href="#optional-attention-for-global-context">Optional Attention for Global Context</a></li>
+    <li><a href="#training-process">Training Process</a></li>
+    <li><a href="#inferencesampling">Inference/Sampling</a></li>
+  </ul>
+</nav>
+    </details>
+            <div class="page-content">
+                <h1 id="ddpm--key-implementation-details--takeaways">DDPM&ndash;Key Implementation Details &amp; Takeaways</h1>
+<p><img alt="alt text" src="/website/posts/ddpm/assets/ddpm_10x.gif"></p>
+<h3 id="medium-link-httpsmediumcomakshitmishra1995what-to-expect-55891597736f">Medium Link: <a href="https://medium.com/@akshitmishra1995/what-to-expect-55891597736f">https://medium.com/@akshitmishra1995/what-to-expect-55891597736f</a></h3>
+<h2 id="what-to-expect">What to Expect?</h2>
+<p><strong>What does this post cover</strong>:</p>
+<ul>
+<li>Intuition, implementation details, and takeaways I observed while implementing Denoising Diffusion Probabilistic Model (DDPM) from scratch.</li>
+<li>Forward and reverse diffusion process</li>
+<li>High-level UNet model architecture</li>
+<li>ResNet and attention layers setup</li>
+<li>Full implementation code can be found at: <a href="https://github.com/mishra39/diffusion_models/tree/main/DDPM">https://github.com/mishra39/diffusion_models/tree/main/DDPM</a></li>
+</ul>
+<p><strong>What does this post not cover:</strong></p>
+<ul>
+<li>The post does not go over the complete DDPM problem setup or the underlying math. For that I encourage you to read <a href="https://lilianweng.github.io/posts/2021-07-11-diffusion-models/">https://lilianweng.github.io/posts/2021-07-11-diffusion-models/</a> and <a href="https://learnopencv.com/denoising-diffusion-probabilistic-models/#Writing-DDPMs-From-Scratch-In-PyTorchf">https://learnopencv.com/denoising-diffusion-probabilistic-models/#Writing-DDPMs-From-Scratch-In-PyTorchf</a></li>
+<li>In particular, I encourage you to read the section in [2] that breaks down why estimating the noise in DDPM is sufficient.
+With that out of the way, let&rsquo;s get into it.</li>
+</ul>
+<h2 id="diffusion">Diffusion</h2>
+<p>Generative models are becoming increasingly popular over the past few years. They have already proven their might in audio and video generation, and are increasingly gaining more applications in the robotics domain as well. A lot of recent self-driving architectures leverage generative models to create end-to-end pixels to action models.</p>
+<ul>
+<li>Diffusion models are a class of generative models that use a Markov chain to model the image noising and de-noising process.</li>
+<li>The noising process is also called the forward diffusion process, and the denoising process is termed as reverse diffusion process.</li>
+<li>In simple terms, we first add random noise to a clean and meaningful image to turn it into a collection of random pixels with random values. Then we train a deep neural network to estimate the random noise.</li>
+</ul>
+<p>Note that this random noise is added iteratively, and the network learns to estimate the noise at each timestep.</p>
+<p><img alt="Forward and reverse diffusion process" src="/website/posts/ddpm/assets/Pasted%20image%2020260214173839.png">
+Figure 1: Forward (x₀ → x_T) and reverse (x_T → x₀) diffusion process. Source: Ho et al., 2020</p>
+<h2 id="intuition">Intuition</h2>
+<p><strong>💡 Key Idea</strong></p>
+<pre tabindex="0"><code>We can gradually convert one distribution into another using a Markov chain.
+</code></pre><p>Let&rsquo;s assume our diffusion model is trained on input images of size (C, H, W) = (3, 256, 256), where C is the number of channels (3 for RGB) and 256 is the height and width of the image.
+We can put any random number in these 196,608 (3x256x256) locations but only a small subset of those would result in meaningful images.
+For training diffusion models, we pick a collection of images from this small subset of clean images, and then add random noise to teach the model how to go from a random position in the 3x256x256 space to a point in our the meaningful image subset.</p>
+<p><img alt="Diffusion process visualization" src="/website/posts/ddpm/assets/Pasted%20image%2020260214174745.png">
+Figure 2: Diffusion process visualization. Source: LearnOpenCV</p>
+<p>The forward diffusion process takes a meaningful image to random noise and the reverse diffusion process learns the reverse process.</p>
+<h2 id="why-do-we-care">Why do we care?</h2>
+<p>Diffusion models are not the only deep generative method that can help reconstruct meaningful information. There are other known methods such as Generative Adverserial Networks (GANs), Variational AutoEncoders (VAE), and flow-based methods as well. So what&rsquo;s the appeal of using diffusion models?</p>
+<ul>
+<li><strong>Higher Fidelity</strong>: Produce <strong>higher quality outputs</strong> (lower FID scores) than GANs.</li>
+<li><strong>Mode Coverage</strong>: Capture the full diversity of the target data distribution</li>
+<li><strong>Mode Collapse</strong>: Model collapse here refers to when a model  produces repetitive and low-diversity outputs, focusing only on a few modes of training.  Diffusion models are known to have better stability than GANs when it comes to mode collapse.</li>
+</ul>
+<h1 id="key-implementation-details">Key Implementation Details</h1>
+<p>One important part of the mathematical derivation in DDPM is that the diffusion model (UNet in this case), does not directly learn to generate images; instead it learns to predict the noise added at each timestep in the forward diffusion state.
+<img alt="Notebook metadata cache image" src="/website/posts/ddpm/assets/NBMetadataCache.png">
+Figure 3: Forward (x₀ → x_T) process</p>
+<h2 id="model-architecture">Model Architecture</h2>
+<p><img alt="U-Net architecture used in DDPM" src="/website/posts/ddpm/assets/Pasted%20image%2020260214193233.png">
+Figure 4: U-Net architecture used in DDPM (generated using Nano Banana)</p>
+<h2 id="time-embeddings-teaching-the-network-about-noise-levels">Time Embeddings: Teaching the Network About Noise Levels</h2>
+<p>It is important for the network to know which timestep it needs to predict the noise for. However, we cannot directly pass a timestep number 512 to the network as it doesn&rsquo;t capture the relationship between timesteps. The network can&rsquo;t easily learn that steps 499, 500, and 501 are related, or that early and late diffusion require fundamentally different strategies.
+Instead we use sine and cosine functions to represent the numbers in the following manner:</p>
+<ul>
+<li>Convert timestep (t=500) to an embedding vector with specified dimension (d=128)
+<ul>
+<li>Half of the embedding vector (even positions) represents sine waves and the other half (odd indices) represent cosine waves with different frequencies</li>
+<li>Both sine and cosine functions are used to capture the full picture and reduce ambiguity sin(30) = sin(150)</li>
+<li>The motivation behind creating a 128 element vector is so we can capture both high-frequency components (fine-grained difference between close timesteps) and low-frequency slow oscillations between far timesteps for coarse vs. fine-grained denoising</li>
+</ul>
+</li>
+<li>For task-specific understanding we pass the time embedding through a small MLP:
+<pre tabindex="0"><code>nn.Linear(128 → 512) → SiLU() → nn.Linear(512 → 512)
+</code></pre>where 512 represents the expanded time-dimension so we can concatenate the time-embedding output with other layers of the network at each step.</li>
+<li>Each layer projects the time-embedding vector from 512 to match its channel output size (128, 256, 512, &hellip;) allowing each layer to interpret time differently&ndash;early layers might use it to control edge sharpening, while deep layers use it for semantic coherence</li>
+</ul>
+<h3 id="encoder-vs-decoder-resnet-blocks">Encoder vs. Decoder ResNet blocks</h3>
+<p>As shown in the image above, the backbone UNet is made up of several layers of ResNet blocks.</p>
+<ul>
+<li>
+<p>Each layer in the encoder has 2 ResNet Blocks and one Downsample layer.</p>
+</li>
+<li>
+<p>ResNet blocks process features from the input image with time embeddings</p>
+</li>
+<li>
+<p>Downsample layer reduces the spatial resolution for all except the deepest level</p>
+</li>
+<li>
+<p>👉 The decoder has a similar setup except each layer has 3 ResNet blocks instead of two</p>
+</li>
+<li>
+<p>Two blocks correspond to the encoder&rsquo;s two ResNet blocks at that level</p>
+</li>
+<li>
+<p>One extra block corresponds to the downsample operation from the previous encoder level</p>
+</li>
+</ul>
+<p><img alt="ResNet block diagram" src="/website/posts/ddpm/assets/Pasted%20image%2020260215140212.png">
+Figure 5: ResNet block diagram  (generated using Nano Banana)</p>
+<ul>
+<li>👉 The residual connection (adding the input back) is critical—it means the network only needs to learn the <strong>changes</strong> to make, not reconstruct everything from scratch. This makes training much more stable, especially in very deep networks.</li>
+</ul>
+<p><strong>Concatenation vs. Addition</strong>:</p>
+<pre tabindex="0"><code># Decoder
+encoder_features = outs.pop()  # Get saved encoder features
+h = torch.cat([h, encoder_features], dim=1)  # Concatenate
+h = ResNetBlock(h)  # Process the combined features
+</code></pre><p>The decoder code uses concatenation and not addition because:</p>
+<ul>
+<li>ResNet learns how to fuse the encoder features with the decoder features</li>
+<li>Addition: Forces a specific combination that might not be optimal</li>
+</ul>
+<h3 id="skip-connections">Skip Connections</h3>
+<p>Each skip connection brings back information such as fine-grained features, color information, etc. that was lost during downsampling</p>
+<ul>
+<li>👉In the decoder, each ResNet block receives skip connections with different channel counts
+<ul>
+<li>First decoder block: <code>[1024 decoder + 512 encoder]</code> → 1536 total input channels</li>
+<li>Second decoder block: <code>[512 decoder + 512 encoder]</code> → 1024 total input channels</li>
+<li>Third decoder block: <code>[512 decoder + 256 encoder]</code> → 768 total input channels</li>
+</ul>
+</li>
+</ul>
+<h2 id="optional-attention-for-global-context">Optional Attention for Global Context</h2>
+<p>The attention mechanism is great for capturing long-range dependencies whereas convolutions are inherently local. Since global context is important for denoising&ndash;when denoising a cat&rsquo;s tail, it&rsquo;s important to know where its head is&ndash;some of the ResNet blocks use attention to capture this relevant context.
+<strong>So why do we not use attention in all the ResNet blocks?</strong>
+- 👉 Attention has O(N^2) complexity, so for a 64x64 resolution input, that&rsquo;s 4,096² = 16,777,216 operations. That&rsquo;s way too expensive!
+- Instead we use attention at 16x16 (256² = 65,536 operations)  or 8x8 (64²=4,096 operations)
+- DDPM uses <strong>Multi-head Attention (MHA)</strong> where each heads learns something unqiue
+- The input [Batch, Channels, Height, Width] = [4, 512, 16, 16] is reshaped into a sequence of tokens, resulting in a tensor of shape <code>[Batch, Sequence_Length, Embedding_Dimension]</code>, which in your example is <code>[4, 256, 512]</code>
+- This allows the MHA block to view each input as a feature vector of size 512
+- The Embedding dimension is split equally between the heads
+- For 4 heads in MHA, each head gets <code>512/4 = 128</code></p>
+<p><img alt="Attention block at low-resolution feature maps" src="/website/posts/ddpm/assets/Pasted%20image%2020260215142551.png">
+Figure 6: Attention block applied at low-resolution feature maps (generated using Google Nano Banana)</p>
+<h2 id="training-process">Training Process</h2>
+<p><img alt="DDPM training algorithm" src="/website/posts/ddpm/assets/Training%20diffusionIMG_0098.png">
+Figure 7: DDPM training algorithm. Source: Ho et al., 2020</p>
+<p>The training algorithm can be broken down in the following steps:</p>
+<ul>
+<li>Sample a batch of images from input dataset</li>
+<li>Generate random timesteps</li>
+<li>Run forward process (add noise) on the training images</li>
+<li>Predict the noise added to these images using the diffusion model</li>
+<li>Compute the loss and run gradient descent based on the ground truth noise (sampled in line 4 of algo 1) and the predicted noise from the model</li>
+</ul>
+<h2 id="inferencesampling">Inference/Sampling</h2>
+<p><img alt="DDPM sampling algorithm" src="/website/posts/ddpm/assets/Algo%202%20sampling.png">
+Figure 8: DDPM sampling algorithm. Source: Ho et al., 2020</p>
+<ul>
+<li>👉 Stochastic nature of reverse process;
+<ul>
+<li>We actually <strong>add noise back</strong> at each step—except the very last one</li>
+</ul>
+<pre tabindex="0"><code>p(x_{t-1} | x_t) = N(x_{t-1}; μ(x_t, t), σ²_t I) -&gt; equation for reverse process
+</code></pre></li>
+</ul>
+<p><strong>Key Idea</strong></p>
+<pre tabindex="0"><code>Given the current noisy image at time t, the previous (less noisy) image follows a Gaussian distribution with mean μ and variance σ².&#34; To properly sample from this distribution, we need to add Gaussian noise scaled by σ_t 
+</code></pre><p>Without this inherent stochasticity the sampling process becomes deterministic, which leads to <strong>mode collapse</strong> and the model has low diversity in the generated samples.
+This added noise adds an <strong>exploration</strong> dimension to the denoising process.</p>
+<ul>
+<li>👉 No noise added in line 3 for t = 0 as we want the final image to be clean (no noise)</li>
+<li>Image is denoised iteratively using the noise predictions from the model</li>
+</ul>
+<h1 id="takeaways">Takeaways</h1>
+<ul>
+<li>Provide positional context everywhere: Time embeddings are fed to all the ResNet blocks and all the layers in them. This is key for the network to learn the right amount of denoising</li>
+<li>Judicious use of Attention: As we saw attention is an expensive operation, so we need to use it wisely to avoid performance bottlenecks</li>
+<li>Resnet Layers asymmetry: The decoder has 3 layers of ResNet blocks vs. 2 in the encoder for proper skip connection fusion</li>
+<li>Stochastic nature of reverse diffusion is important for the model to have diversity at inference</li>
+</ul>
+<h1 id="references">References</h1>
+<ol>
+<li>
+<p>Ho, J., Jain, A., &amp; Abbeel, P. (2020). <em>Denoising Diffusion Probabilistic Models.</em> <a href="https://arxiv.org/abs/2006.11239">https://arxiv.org/abs/2006.11239</a></p>
+</li>
+<li>
+<p>Weng, L. (2021). <em>What are Diffusion Models?</em> <a href="https://lilianweng.github.io/posts/2021-07-11-diffusion-models/">https://lilianweng.github.io/posts/2021-07-11-diffusion-models/</a></p>
+</li>
+<li>
+<p>LearnOpenCV. <em>Denoising Diffusion Probabilistic Models – Writing DDPMs From Scratch In PyTorch.</em> [https://learnopencv.com/denoising-diffusion-probabilistic-models/]</p>
+</li>
+</ol>
+
+            </div>
+        </article></main>
+</div>
+<footer class="footer">
+    <span class="footer_item"> </span>
+    &nbsp;
+
+    <div class="footer_social-icons">
+<a href="https://github.com/mishra39" target="_blank" rel="noopener noreferrer me"
+    title="Github">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path
+        d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+    </path>
+</svg>
+</a>
+<a href="https://www.linkedin.com/in/akshitmishra/" target="_blank" rel="noopener noreferrer me"
+    title="Linkedin">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+    <rect x="2" y="9" width="4" height="12"></rect>
+    <circle cx="4" cy="4" r="2"></circle>
+</svg>
+</a>
+<a href="https://twitter.com" target="_blank" rel="noopener noreferrer me"
+    title="Twitter">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path
+        d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z">
+    </path>
+</svg>
+</a>
+</div>
+    <small class="footer_copyright">
+        © 2026 Akshit Mishra.
+        
+    </small>
+</footer><a href="#" title="Go to top" id="totop">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" stroke="currentColor" viewBox="0 96 960 960">
+    <path d="M283 704.739 234.261 656 480 410.261 725.739 656 677 704.739l-197-197-197 197Z"/>
+</svg>
+
+</a>
+
+
+    
+
+
+
+
+    
+    
+        
+    
+
+    
+    
+        
+    
+
+
+
+    
+    <script src="https://mishra39.github.io/website/js/main.min.35f435a5d8eac613c52daa28d8af544a4512337d3e95236e4a4978417b8dcb2f.js" integrity="sha256-NfQ1pdjqxhPFLaoo2K9USkUSM30&#43;lSNuSkl4QXuNyy8="></script>
+
+    
+
+</body>
+</html>

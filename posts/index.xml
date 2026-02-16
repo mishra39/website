@@ -6,7 +6,20 @@
     <description>Recent content in Posts on My Personal Website</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 19 Jul 2024 07:28:02 -0400</lastBuildDate><atom:link href="https://mishra39.github.io/website/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 15 Feb 2026 12:00:00 -0500</lastBuildDate><atom:link href="https://mishra39.github.io/website/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>DDPM--Key Implementation Details &amp; Takeaways</title>
+      <link>https://mishra39.github.io/website/posts/ddpm/</link>
+      <pubDate>Sun, 15 Feb 2026 12:00:00 -0500</pubDate>
+      
+      <guid>https://mishra39.github.io/website/posts/ddpm/</guid>
+      
+      <description>DDPM&amp;ndash;Key Implementation Details &amp;amp; Takeaways Medium Link: https://medium.com/@akshitmishra1995/what-to-expect-55891597736f What to Expect? What does this post cover:
+Intuition, implementation details, and takeaways I observed while implementing Denoising Diffusion Probabilistic Model (DDPM) from scratch. Forward and reverse diffusion process High-level UNet model architecture ResNet and attention layers setup Full implementation code can be found at: https://github.com/mishra39/diffusion_models/tree/main/DDPM What does this post not cover:
+The post does not go over the complete DDPM problem setup or the underlying math.</description>
+      
+    </item>
+    
     <item>
       <title>Minimum Snap Trajectory Generation-Part 1</title>
       <link>https://mishra39.github.io/website/posts/min-snap-part1/</link>

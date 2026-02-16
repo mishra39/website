@@ -2,13 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://mishra39.github.io/website/</loc>
-    <lastmod>2024-07-19T07:28:02-04:00</lastmod>
+    <loc>https://mishra39.github.io/website/posts/ddpm/</loc>
+    <lastmod>2026-02-15T12:00:00-05:00</lastmod>
   </url><url>
-    <loc>https://mishra39.github.io/website/posts/min-snap-part1/</loc>
-    <lastmod>2024-07-19T07:28:02-04:00</lastmod>
+    <loc>https://mishra39.github.io/website/</loc>
+    <lastmod>2026-02-15T12:00:00-05:00</lastmod>
   </url><url>
     <loc>https://mishra39.github.io/website/posts/</loc>
+    <lastmod>2026-02-15T12:00:00-05:00</lastmod>
+  </url><url>
+    <loc>https://mishra39.github.io/website/posts/min-snap-part1/</loc>
     <lastmod>2024-07-19T07:28:02-04:00</lastmod>
   </url><url>
     <loc>https://mishra39.github.io/website/projects/caa/</loc>
