@@ -14,7 +14,9 @@
       
       <guid>https://mishra39.github.io/website/posts/ddpm/</guid>
       
-      <description>DDPM&amp;ndash;Key Implementation Details &amp;amp; Takeaways Medium Link: https://medium.com/@akshitmishra1995/what-to-expect-55891597736f What to Expect? What does this post cover:
+      <description>DDPM&amp;ndash;Key Implementation Details &amp;amp; Takeaways Medium Link: https://medium.com/@akshitmishra1995/what-to-expect-55891597736f
+Code: https://github.com/mishra39/diffusion_models/tree/main/DDPM
+What to Expect? What does this post cover:
 Intuition, implementation details, and takeaways I observed while implementing Denoising Diffusion Probabilistic Model (DDPM) from scratch. Forward and reverse diffusion process High-level UNet model architecture ResNet and attention layers setup Full implementation code can be found at: https://github.com/mishra39/diffusion_models/tree/main/DDPM What does this post not cover:
 The post does not go over the complete DDPM problem setup or the underlying math.</description>
       
