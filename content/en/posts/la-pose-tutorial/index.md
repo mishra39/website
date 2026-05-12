@@ -2,10 +2,2592 @@
 title = "LA-Pose: Learning Camera Motion from Unlabeled Driving Video"
 date = 2026-05-12T12:00:00-05:00
 author = "Akshit Mishra"
-math = false
-tocOpen = false
+layout = "raw"
 +++
 
-An interactive deep-dive into **LA-Pose** — a method for learning camera motion (ego-pose estimation) from unlabeled driving video using self-supervised learning. Covers the architecture, loss formulation, and key implementation details with interactive visualizations.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LA-Pose — Learning Camera Motion from Unlabeled Driving Video</title>
 
-[Open Full Tutorial](/la-pose-tutorial.html)
+<!-- Fonts: editorial serif + clean sans + technical mono -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Manrope:wght@200..800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- MathJax for math rendering -->
+<script>
+  MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" defer></script>
+
+<!-- Prism for syntax highlighting -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js" defer></script>
+
+<style>
+  /* ---------- DESIGN TOKENS ---------- */
+  :root {
+    --bg: #07090f;
+    --bg-elev: #0d1220;
+    --bg-card: #111729;
+    --border: #1b2238;
+    --border-strong: #2a3554;
+    --text: #ecedf2;
+    --text-dim: #9aa3b8;
+    --text-mute: #6a7591;
+    --la-green: #2bf7b3;
+    --la-green-soft: rgba(43, 247, 179, 0.12);
+    --magenta: #f178c9;
+    --cyan: #4dd6f6;
+    --red: #ff7a8a;
+    --amber: #ffc15c;
+    --indigo: #8a8bff;
+    --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+    --sans: "Manrope", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+    --radius: 14px;
+    --shadow-soft: 0 12px 40px -16px rgba(43, 247, 179, 0.12), 0 4px 20px -8px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 350;
+    line-height: 1.65;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grain on top of everything */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: overlay;
+  }
+
+  ::selection { background: var(--la-green); color: #062018; }
+
+  /* ---------- TYPOGRAPHY ---------- */
+  h1, h2, h3, h4 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-variation-settings: "opsz" 144;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1.08;
+    margin: 0;
+  }
+  h1 { font-size: clamp(2.4rem, 6vw, 5.2rem); }
+  h2 { font-size: clamp(2rem, 4vw, 3.3rem); margin: 0 0 0.6rem; }
+  h3 { font-size: clamp(1.4rem, 2.4vw, 1.9rem); margin: 2.6rem 0 0.8rem; }
+  h4 { font-size: 1.15rem; font-family: var(--sans); font-weight: 600; letter-spacing: 0.01em; margin: 1.6rem 0 0.5rem; color: var(--text); }
+
+  p { margin: 0 0 1.1rem; color: var(--text); }
+  em { font-style: italic; font-family: var(--serif); color: var(--la-green); }
+  strong { font-weight: 600; color: var(--text); }
+  a { color: var(--la-green); text-decoration: none; border-bottom: 1px dotted rgba(43, 247, 179, 0.4); transition: all 0.2s; }
+  a:hover { border-bottom-color: var(--la-green); background: var(--la-green-soft); }
+  code:not(pre code) {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: rgba(255, 193, 92, 0.07);
+    color: var(--amber);
+    padding: 1px 7px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 193, 92, 0.15);
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.28em;
+    color: var(--la-green);
+    font-weight: 600;
+    font-family: var(--sans);
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid rgba(43, 247, 179, 0.3);
+    border-radius: 100px;
+    background: var(--la-green-soft);
+  }
+
+  /* ---------- LAYOUT ---------- */
+  .container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 60px;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; gap: 0; }
+    .toc { display: none !important; }
+  }
+
+  /* ---------- TOC ---------- */
+  .toc {
+    position: sticky;
+    top: 80px;
+    align-self: start;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    padding: 24px 0;
+    font-size: 13.5px;
+  }
+  .toc::-webkit-scrollbar { width: 4px; }
+  .toc::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+  .toc-title {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--text-mute);
+    margin-bottom: 12px;
+    padding-left: 10px;
+  }
+  .toc a {
+    display: block;
+    padding: 6px 10px;
+    color: var(--text-mute);
+    border-bottom: none;
+    border-left: 1.5px solid var(--border);
+    transition: all 0.25s ease;
+    line-height: 1.35;
+  }
+  .toc a:hover { color: var(--text); background: transparent; border-left-color: var(--text-mute); padding-left: 14px; }
+  .toc a.active {
+    color: var(--la-green);
+    border-left: 1.5px solid var(--la-green);
+    background: linear-gradient(90deg, var(--la-green-soft), transparent);
+    padding-left: 14px;
+    font-weight: 500;
+  }
+  .toc-sub { padding-left: 18px !important; font-size: 0.92em; }
+
+  main {
+    max-width: 760px;
+    padding: 60px 0 120px;
+  }
+
+  /* ---------- NAVBAR ---------- */
+  .topnav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    background: rgba(7, 9, 15, 0.78);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+  }
+  .topnav-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .brand {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--la-green);
+    box-shadow: 0 0 14px var(--la-green);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
+  }
+  .nav-links { display: flex; gap: 22px; font-size: 0.85rem; font-family: var(--sans); }
+  .nav-links a { color: var(--text-dim); border-bottom: none; }
+  .nav-links a:hover { color: var(--la-green); background: transparent; }
+  @media (max-width: 700px) { .nav-links { display: none; } }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding: 100px 0 80px;
+    border-bottom: 1px solid var(--border);
+  }
+  #hero-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+  }
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(43, 247, 179, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(43, 247, 179, 0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+    z-index: 1;
+  }
+  .hero-inner {
+    position: relative;
+    z-index: 3;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 28px;
+    width: 100%;
+  }
+  .hero-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+  .hero-tag {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 5px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 100px;
+    background: rgba(13, 18, 32, 0.7);
+    backdrop-filter: blur(8px);
+  }
+  .hero-tag.accent { color: var(--la-green); border-color: rgba(43, 247, 179, 0.3); background: var(--la-green-soft); }
+  .hero h1 .il { font-style: italic; font-weight: 300; color: var(--la-green); }
+  .hero-sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+    color: var(--text-dim);
+    max-width: 720px;
+    margin: 28px 0 0;
+    line-height: 1.4;
+  }
+  .hero-authors {
+    margin-top: 50px;
+    font-size: 0.92rem;
+    color: var(--text-mute);
+    max-width: 720px;
+    line-height: 1.7;
+  }
+  .hero-authors strong { color: var(--text-dim); font-weight: 500; }
+  .hero-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 56px;
+  }
+  .hero-card {
+    background: rgba(17, 23, 41, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    transition: all 0.4s ease;
+  }
+  .hero-card:hover { border-color: var(--la-green); transform: translateY(-4px); }
+  .hero-card-num {
+    font-family: var(--serif);
+    font-size: 2.4rem;
+    font-weight: 300;
+    color: var(--la-green);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .hero-card-label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section.chapter { padding: 70px 0 20px; scroll-margin-top: 80px; }
+  section.chapter:first-child { padding-top: 50px; }
+  .chapter-num {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--la-green);
+    letter-spacing: 0.2em;
+    margin-bottom: 14px;
+  }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--la-green);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 1.6rem 0;
+    font-size: 0.95em;
+  }
+  .callout-label {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--la-green);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .callout.warn { border-left-color: var(--amber); }
+  .callout.warn .callout-label { color: var(--amber); }
+  .callout.think { border-left-color: var(--indigo); background: linear-gradient(180deg, rgba(138, 139, 255, 0.05), var(--bg-card)); }
+  .callout.think .callout-label { color: var(--indigo); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ---------- INTERACTIVE WIDGETS ---------- */
+  .widget {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 26px;
+    margin: 2rem 0;
+    box-shadow: var(--shadow-soft);
+  }
+  .widget-title {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--text-mute);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .widget-title::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--la-green);
+  }
+  .widget-canvas {
+    width: 100%;
+    background: var(--bg-elev);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: block;
+  }
+
+  .controls {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+  }
+  .control-row { display: grid; grid-template-columns: 100px 1fr 70px; align-items: center; gap: 14px; }
+  .control-label { color: var(--text-dim); }
+  .control-value { color: var(--la-green); text-align: right; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    width: 100%;
+    height: 4px;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 3px;
+    background: var(--border-strong);
+    border-radius: 3px;
+  }
+  input[type="range"]::-moz-range-track {
+    height: 3px;
+    background: var(--border-strong);
+    border-radius: 3px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -7px;
+    background: var(--la-green);
+    height: 17px;
+    width: 17px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-card);
+    box-shadow: 0 0 12px rgba(43, 247, 179, 0.5);
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    background: var(--la-green);
+    height: 17px;
+    width: 17px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-card);
+    cursor: pointer;
+  }
+
+  button.btn {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    background: transparent;
+    color: var(--la-green);
+    border: 1px solid rgba(43, 247, 179, 0.3);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  button.btn:hover { background: var(--la-green-soft); border-color: var(--la-green); }
+  button.btn.active { background: var(--la-green); color: var(--bg); }
+
+  /* ---------- TABLES ---------- */
+  table.data {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-family: var(--mono);
+    font-size: 0.86rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  table.data th, table.data td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  table.data th {
+    background: var(--bg-elev);
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  table.data tr:last-child td { border-bottom: none; }
+  table.data tr.highlight td { background: var(--la-green-soft); color: var(--la-green); font-weight: 600; }
+  table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* ---------- CODE ---------- */
+  pre[class*="language-"] {
+    background: var(--bg-elev) !important;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 26px !important;
+    font-family: var(--mono) !important;
+    font-size: 0.82rem !important;
+    margin: 1.6rem 0 !important;
+    overflow-x: auto;
+  }
+  code[class*="language-"] { font-family: var(--mono) !important; }
+
+  /* ---------- CARDS ---------- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 1.8rem 0;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    transition: all 0.3s;
+  }
+  .card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+  .card-title { font-family: var(--serif); font-size: 1.2rem; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+  .card-desc { font-size: 0.88rem; color: var(--text-dim); line-height: 1.55; }
+
+  /* ---------- KEY-VALUE GRID ---------- */
+  .kv-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 1.4rem 0;
+  }
+  .kv {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+  .kv-key {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 4px;
+  }
+  .kv-val { font-family: var(--serif); font-size: 1.2rem; color: var(--la-green); }
+
+  /* ---------- BIG QUOTE ---------- */
+  blockquote {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--text);
+    border-left: 2px solid var(--la-green);
+    margin: 2rem 0;
+    padding: 12px 0 12px 28px;
+    line-height: 1.4;
+  }
+
+  /* ---------- LEGEND ---------- */
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.82rem; font-family: var(--mono); color: var(--text-dim); margin-top: 12px; }
+  .legend-item { display: inline-flex; align-items: center; gap: 7px; }
+  .legend-dot { width: 11px; height: 11px; border-radius: 2px; }
+
+  /* ---------- BENCH BARS ---------- */
+  .bench-row { display: grid; grid-template-columns: 130px 1fr 60px; gap: 14px; align-items: center; margin: 10px 0; font-family: var(--mono); font-size: 0.82rem; }
+  .bench-name { color: var(--text-dim); }
+  .bench-bar-bg { background: var(--bg-elev); border-radius: 4px; height: 22px; overflow: hidden; border: 1px solid var(--border); }
+  .bench-bar { height: 100%; border-radius: 3px; transition: width 1s ease; }
+  .bench-val { color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* ---------- ARCHITECTURE FLOW ---------- */
+  .arch-stage {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin: 1.4rem 0;
+    position: relative;
+  }
+  .arch-stage-label {
+    position: absolute;
+    top: -10px; left: 22px;
+    background: var(--bg);
+    padding: 2px 10px;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--la-green);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 60px 0 40px;
+    text-align: center;
+    color: var(--text-mute);
+    font-size: 0.88rem;
+  }
+  footer a { color: var(--text-dim); }
+
+  /* ---------- ANIMATIONS ---------- */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.9s ease forwards; opacity: 0; }
+  .fade-in.d1 { animation-delay: 0.15s; }
+  .fade-in.d2 { animation-delay: 0.3s; }
+  .fade-in.d3 { animation-delay: 0.45s; }
+  .fade-in.d4 { animation-delay: 0.6s; }
+
+  @keyframes dash { to { stroke-dashoffset: -200; } }
+  .flow-arrow { stroke-dasharray: 6 4; animation: dash 6s linear infinite; }
+
+  /* ---------- SCROLL INDICATOR ---------- */
+  .scroll-hint {
+    position: absolute;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    color: var(--text-mute);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    animation: bob 3s ease-in-out infinite;
+  }
+  @keyframes bob { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 8px); } }
+</style>
+</head>
+<body>
+
+<!-- ==================== TOP NAV ==================== -->
+<nav class="topnav">
+  <div class="topnav-inner">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      LA-Pose <span style="color: var(--text-mute); font-weight: 300;">— interactive tutorial</span>
+    </div>
+    <div class="nav-links">
+      <a href="#intuition">Intuition</a>
+      <a href="#primer">Primer</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#results">Results</a>
+      <a href="#apply">Apply it</a>
+      <a href="https://arxiv.org/abs/2604.27448" target="_blank" rel="noopener">arXiv ↗</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-grid"></div>
+  <div class="hero-inner fade-in">
+    <div class="hero-meta">
+      <span class="hero-tag accent">CVPR 2026 · Wayve × SFU</span>
+      <span class="hero-tag">Self-supervised perception</span>
+      <span class="hero-tag">Camera pose estimation</span>
+    </div>
+    <h1>
+      Learning camera<br/>
+      motion <span class="il">from videos</span><br/>
+      nobody labelled.
+    </h1>
+    <p class="hero-sub">
+      LA-Pose discovers a hidden grammar of <em>motion</em> by watching ten million driving clips no
+      human annotated — and re-purposes that grammar to predict camera pose more accurately than
+      methods trained on thousands of LiDAR-calibrated scenes.
+    </p>
+    <p class="hero-authors">
+      <strong>Zhengqing Wang, Saurabh Nair, Prajwal Chidananda, Pujith Kachana, Samuel Li,
+      Matthew Brown, Yasutaka Furukawa</strong> · Wayve & Simon Fraser University
+      · A walk-through built for engineers, ML practitioners, and the merely curious.
+    </p>
+
+    <div class="hero-cards">
+      <div class="hero-card fade-in d1">
+        <div class="hero-card-num">10.2 M</div>
+        <div class="hero-card-label">unlabeled driving video clips for pretraining</div>
+      </div>
+      <div class="hero-card fade-in d2">
+        <div class="hero-card-num">91.4 %</div>
+        <div class="hero-card-label">AUC@5° on Waymo — over 10 % above prior feed-forward methods</div>
+      </div>
+      <div class="hero-card fade-in d3">
+        <div class="hero-card-num">86.3 %</div>
+        <div class="hero-card-label">zero-shot on PandaSet, an unseen benchmark</div>
+      </div>
+      <div class="hero-card fade-in d4">
+        <div class="hero-card-num">4 days</div>
+        <div class="hero-card-label">to pre-train on 32 H100s · cheaper than competing methods</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">↓ scroll to begin</div>
+</section>
+
+<!-- ==================== MAIN LAYOUT ==================== -->
+<div class="layout">
+
+<!-- ----- TOC ----- -->
+<aside class="toc">
+  <div class="toc-title">Contents</div>
+  <a href="#intuition">01 · The big picture</a>
+  <a href="#why-hard">02 · Why pose is hard</a>
+  <a href="#primer">03 · A gentle primer</a>
+  <a href="#camera-pose" class="toc-sub">→ Camera pose</a>
+  <a href="#se3" class="toc-sub">→ Rotation & SE(3)</a>
+  <a href="#ssl" class="toc-sub">→ Self-supervision</a>
+  <a href="#latent" class="toc-sub">→ Latent actions</a>
+  <a href="#inverse-dyn" class="toc-sub">→ Inverse dynamics</a>
+  <a href="#architecture">04 · The LA-Pose architecture</a>
+  <a href="#stage1" class="toc-sub">→ Stage 1 · Pretraining</a>
+  <a href="#stage2" class="toc-sub">→ Stage 2 · Post-training</a>
+  <a href="#math">05 · The math, gently</a>
+  <a href="#training">06 · Training pipeline</a>
+  <a href="#latent-space">07 · What the model learns</a>
+  <a href="#results">08 · Results</a>
+  <a href="#comparison">09 · Comparison</a>
+  <a href="#limits">10 · Limitations</a>
+  <a href="#apply">11 · Apply it yourself</a>
+  <a href="#further">12 · Further reading</a>
+</aside>
+
+<!-- ----- MAIN ----- -->
+<main>
+
+<!-- ==================== 01 — INTUITION ==================== -->
+<section class="chapter" id="intuition">
+  <div class="chapter-num">01 — THE BIG PICTURE</div>
+  <h2>A car, a camera, and a question</h2>
+
+  <p>
+    Imagine you're sitting in the back of a car. A dash camera is filming the road. Every quarter-second,
+    a new frame appears. The view drifts left, leans into a curve, accelerates. Now somebody asks you
+    a question that sounds simple:
+  </p>
+
+  <blockquote>"How exactly did the camera move between these two frames?"</blockquote>
+
+  <p>
+    You'd need to answer in numbers: how many metres forward, how many degrees of turn, how much pitch,
+    how much yaw. That answer is called the <em>camera pose</em>. It's the bedrock under almost every 3D
+    computer-vision task — from SLAM to NeRFs to autonomous driving stacks.
+  </p>
+
+  <p>
+    For decades, getting it right has been expensive. You needed a LiDAR fleet, hours of calibration,
+    and people meticulously hand-labelling millions of frames. <strong>LA-Pose asks a different
+    question:</strong> the world is drowning in unlabeled driving video. Can a model learn enough
+    about <em>motion</em> just by watching, so that we only need a handful of labelled examples to
+    finish the job?
+  </p>
+
+  <div class="callout">
+    <div class="callout-label">The one-sentence version</div>
+    <p>
+      Watch ten million unlabelled driving clips, learn a compressed code for "what happened
+      between two frames," then teach a tiny head to translate that code into a metric 3D pose.
+    </p>
+  </div>
+
+  <p>
+    The answer is yes — surprisingly so. On standard driving benchmarks LA-Pose beats methods that
+    were trained on far more labelled data, and it does so with a single feed-forward pass through a
+    transformer. No bundle adjustment. No iterative optimisation. No LiDAR.
+  </p>
+</section>
+
+<!-- ==================== 02 — WHY HARD ==================== -->
+<section class="chapter" id="why-hard">
+  <div class="chapter-num">02 — WHY THIS IS HARD</div>
+  <h2>What breaks in the traditional pipeline</h2>
+
+  <p>
+    Before we appreciate the solution, it helps to feel the problem. Camera pose estimation
+    historically has three "tribes," each with painful trade-offs.
+  </p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-title">SfM / SLAM</div>
+      <div class="card-desc">
+        Classical pipelines like COLMAP solve a giant optimisation problem matching feature points
+        between frames. <strong>Accurate, but slow.</strong> They struggle with low-texture roads,
+        moving objects, and need many overlapping views.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Direct regression</div>
+      <div class="card-desc">
+        Take a neural network, feed it frames, regress (R, t). Fast — but historically inaccurate.
+        Models like PoseNet generalize poorly.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Feed-forward 3D</div>
+      <div class="card-desc">
+        Modern methods (DUSt3R, VGGT, MapAnything) regress dense pointmaps in one pass, very accurate
+        — but require <strong>massive 3D-annotated datasets</strong> from LiDAR or simulation.
+        Annotation is the bottleneck.
+      </div>
+    </div>
+  </div>
+
+  <p>
+    Notice what's missing from this list: <em>scale</em>. The big leaps in language models came from
+    consuming the entire internet without labels. The big leaps in vision came from DINO, JEPA, MAE —
+    again, training without labels. But for <strong>geometric</strong> tasks like pose, the field
+    largely stuck with supervised data.
+  </p>
+
+  <p>
+    LA-Pose's bet is that the same self-supervised playbook that worked for language and image
+    semantics will also work for <em>motion</em>. The trick is finding the right pretext task.
+  </p>
+
+  <div class="callout think">
+    <div class="callout-label">Pause and think</div>
+    <p>
+      If you had a billion unlabelled driving clips, what could you train a model to predict that
+      would <em>force</em> it to understand camera motion — without ever being told what the camera
+      did? Hold that question for two minutes; the rest of this article is essentially the answer.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== 03 — PRIMER ==================== -->
+<section class="chapter" id="primer">
+  <div class="chapter-num">03 — A GENTLE PRIMER</div>
+  <h2>Five ideas you'll need first</h2>
+
+  <p>
+    LA-Pose sits at the intersection of geometry, self-supervised learning, and world-modelling.
+    If you're new to any of those, this section is for you. We'll build each idea from scratch — feel
+    free to skim what you already know.
+  </p>
+
+  <!-- ---------- 3a CAMERA POSE ---------- -->
+  <h3 id="camera-pose">3.1 · What is a camera pose, really?</h3>
+
+  <p>
+    Pick any frame from a video. The pixels you see depend on two things: <strong>where the camera
+    is</strong> and <strong>which way it's pointing</strong>. Together, those two pieces of
+    information are the <em>pose</em>.
+  </p>
+
+  <p>
+    Mathematically, "where" is a 3-dimensional <em>translation</em> $\mathbf{t} \in \mathbb{R}^3$, and
+    "which way" is a 3-dimensional <em>rotation</em>. The pair $(R, \mathbf{t})$ is a rigid-body
+    transformation — six numbers in total, often called <strong>6-DoF pose</strong>.
+  </p>
+
+  <p>
+    Drag the sliders below to move and turn a tiny virtual camera. The grey grid is the world. The
+    coloured frustum is what the camera sees.
+  </p>
+
+  <!-- Interactive camera widget -->
+  <div class="widget">
+    <div class="widget-title">Interactive · 6-DoF camera pose</div>
+    <svg id="poseSvg" viewBox="0 0 560 320" class="widget-canvas" style="height: 320px;"></svg>
+    <div class="controls">
+      <div class="control-row">
+        <span class="control-label">tx (right)</span>
+        <input type="range" id="poseTx" min="-3" max="3" step="0.05" value="0.5">
+        <span class="control-value" id="poseTxVal">0.50</span>
+      </div>
+      <div class="control-row">
+        <span class="control-label">tz (forward)</span>
+        <input type="range" id="poseTz" min="-2" max="4" step="0.05" value="1.5">
+        <span class="control-value" id="poseTzVal">1.50</span>
+      </div>
+      <div class="control-row">
+        <span class="control-label">yaw (turn)</span>
+        <input type="range" id="poseYaw" min="-90" max="90" step="1" value="20">
+        <span class="control-value" id="poseYawVal">20°</span>
+      </div>
+      <div class="control-row">
+        <span class="control-label">pitch (tilt)</span>
+        <input type="range" id="posePitch" min="-30" max="30" step="1" value="-5">
+        <span class="control-value" id="posePitchVal">-5°</span>
+      </div>
+    </div>
+    <p style="font-size: 0.85rem; color: var(--text-mute); margin-top: 12px; margin-bottom: 0;">
+      Notice how <em>two</em> separate things change: the camera <strong>moves</strong> through space
+      (translation) and <strong>turns</strong> around its own centre (rotation). Pose estimation
+      means recovering both — to scale.
+    </p>
+  </div>
+
+  <!-- ---------- 3b SE(3) ---------- -->
+  <h3 id="se3">3.2 · The language of rigid motion: SE(3) and quaternions</h3>
+
+  <p>
+    A rotation in 3D is awkward. The naive way — three angles (roll, pitch, yaw) — has nasty edge
+    cases called <em>gimbal lock</em>. A cleaner representation is the <strong>rotation matrix</strong>
+    $R \in \mathbb{R}^{3\times 3}$, but that's 9 numbers with constraints ($R^\top R = I$, $\det R =
+    1$). The most compact, well-behaved choice for neural networks is the <strong>quaternion</strong> —
+    just four numbers, $q = (w, x, y, z)$, that live on the unit 3-sphere.
+  </p>
+
+  <p>
+    Together, a rotation and a translation form an element of the <em>special Euclidean group</em>
+    $\mathrm{SE}(3)$:
+  </p>
+
+  $$T = \begin{bmatrix} R & \mathbf{t} \\ \mathbf{0}^\top & 1 \end{bmatrix} \in \mathrm{SE}(3)$$
+
+  <p>
+    Don't be intimidated by the notation. $\mathrm{SE}(3)$ is just the set of all "things you can do
+    to a rigid object without squashing or shearing it" — moves, turns, and combinations. Every
+    camera-pose paper, including LA-Pose, ultimately produces a sequence of $\mathrm{SE}(3)$
+    elements describing the camera's journey.
+  </p>
+
+  <div class="callout">
+    <div class="callout-label">LA-Pose's pose representation</div>
+    <p>
+      The model outputs a <strong>4-D quaternion</strong> for rotation, a <strong>3-D translation</strong>
+      vector (scale-normalised), a <strong>1-D field-of-view</strong> token, and a <strong>1-D metric
+      scale</strong> through a separate "scale token." That's 9 scalars per frame transition — but they
+      capture the same SE(3) geometry as the 16-number matrix above, with no degenerate corner cases.
+    </p>
+  </div>
+
+  <!-- ---------- 3c SSL ---------- -->
+  <h3 id="ssl">3.3 · Self-supervised learning, in one minute</h3>
+
+  <p>
+    The supervised playbook is "show the model an input, tell it the right answer, repeat." That
+    works — but labels are expensive. Self-supervised learning (SSL) sidesteps the labels by inventing
+    a <em>pretext task</em> the model can solve using the data alone.
+  </p>
+
+  <p>The two SSL ideas you should know:</p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-title">Masked prediction</div>
+      <div class="card-desc">
+        Hide part of the input (a word in BERT, a patch in MAE, a video clip in V-JEPA). Train the
+        model to fill in the blank. To do that well it must learn a deep, transferable representation.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Predict the next thing</div>
+      <div class="card-desc">
+        Show a sequence and predict what comes next. This is GPT for text and Genie for video. The
+        model learns the <em>dynamics</em> of the data — the rules that make one moment lead to the
+        next.
+      </div>
+    </div>
+  </div>
+
+  <p>
+    LA-Pose uses the second flavour: <strong>predict the next frame</strong>. The catch is the model
+    is given only the past frames — never a label. So how can it possibly predict the future?
+  </p>
+
+  <!-- ---------- 3d LATENT ACTIONS ---------- -->
+  <h3 id="latent">3.4 · Latent actions: the missing variable</h3>
+
+  <p>
+    Watch frame 1 of a driving clip. The car is in lane. Watch frame 2. The car has nudged left. To
+    bridge frame 1 → frame 2 with any model, you need to know <em>what action happened</em> — but the
+    raw video doesn't include the steering-wheel input. There's a missing variable.
+  </p>
+
+  <p>
+    A clever trick: <strong>let the model invent its own action variable.</strong> Put a tiny bottleneck
+    between two frames and force the model to summarise the change into a short code $\mathbf{a}$. Then
+    use that code to predict frame 2 from frame 1. The model must compress the entire change — turn,
+    speed, lane shift — into $\mathbf{a}$, or it'll fail to reconstruct.
+  </p>
+
+  <p>
+    That short code $\mathbf{a}$ is the <em>latent action</em>. It's not human-readable. But — and
+    this is the whole point — it captures motion-relevant information almost surgically, because
+    appearance details that didn't change between frames don't need to be in $\mathbf{a}$.
+  </p>
+
+  <!-- Latent action visualiser -->
+  <div class="widget">
+    <div class="widget-title">Concept · How a latent action emerges</div>
+    <svg viewBox="0 0 600 220" class="widget-canvas" style="height: 220px;" id="latentSvg">
+      <!-- Will be drawn by JS -->
+    </svg>
+    <p style="font-size: 0.85rem; color: var(--text-mute); margin-top: 12px; margin-bottom: 0;">
+      The latent action $\mathbf{a}_t$ is whatever the model <em>needs</em> in order to predict
+      $X_{t+1}$ from $X_t$. Because the bottleneck is tiny (50 dimensions in LA-Pose's main ablation),
+      it can't store appearance — only motion.
+    </p>
+  </div>
+
+  <p>
+    This idea was crystallised by <a href="https://arxiv.org/abs/2402.15391" target="_blank"
+    rel="noopener">Genie (DeepMind, 2024)</a> for interactive game-world generation. LA-Pose adopts
+    the same architecture but uses the latent actions for an entirely different downstream task:
+    geometric pose recovery.
+  </p>
+
+  <!-- ---------- 3e INVERSE DYNAMICS ---------- -->
+  <h3 id="inverse-dyn">3.5 · Forward and inverse dynamics</h3>
+
+  <p>
+    Two dual concepts from physics and robotics:
+  </p>
+
+  <div class="kv-grid">
+    <div class="kv">
+      <div class="kv-key">Forward dynamics</div>
+      <div class="kv-val">state + action → next state</div>
+    </div>
+    <div class="kv">
+      <div class="kv-key">Inverse dynamics</div>
+      <div class="kv-val">state + next state → action</div>
+    </div>
+  </div>
+
+  <p>
+    In LA-Pose, "state" is a frame's visual tokens, and "action" is the latent code we just
+    discussed. The <strong>inverse-dynamics model</strong> looks at frame $X_t$ and frame $X_{t+1}$
+    and squeezes out an action $\mathbf{a}_t$. The <strong>forward-dynamics model</strong> takes
+    $X_t$ and $\mathbf{a}_t$ and predicts $X_{t+1}$.
+  </p>
+
+  <p>
+    Train them jointly. The forward model can only reconstruct $X_{t+1}$ if $\mathbf{a}_t$ contains
+    real motion information. So the inverse model is forced to produce useful actions — purely by
+    self-supervision.
+  </p>
+
+  <div class="callout">
+    <div class="callout-label">Why this matters for pose</div>
+    <p>
+      <strong>For a moving vehicle, the action is the motion.</strong> Steering, acceleration,
+      braking — all manifest as ego-motion, which in turn is exactly what a pose estimator predicts.
+      LA-Pose's insight: the latent action $\mathbf{a}_t$ is already a compressed pose, we just need
+      to decode it.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== 04 — ARCHITECTURE ==================== -->
+<section class="chapter" id="architecture">
+  <div class="chapter-num">04 — THE LA-POSE ARCHITECTURE</div>
+  <h2>Two stages, one elegant idea</h2>
+
+  <p>
+    LA-Pose is split into two training stages. The first is enormous, self-supervised, and patient.
+    The second is tiny, supervised, and fast. Let's walk through both.
+  </p>
+
+  <!-- Big architecture diagram -->
+  <svg viewBox="0 0 760 460" class="widget-canvas" style="height: 460px; padding: 12px; margin: 1.5rem 0;" id="archSvg"></svg>
+  <p style="font-size: 0.82rem; color: var(--text-mute); margin-top: -10px;">
+    Figure: The two stages. Top — pretraining learns latent actions $\mathbf{a}_t$ from raw video.
+    Bottom — a tiny pose head turns latent actions into 7-DoF pose + scale.
+  </p>
+
+  <!-- ---------- STAGE 1 ---------- -->
+  <h3 id="stage1">4.1 · Stage 1 — Latent action pretraining</h3>
+
+  <div class="arch-stage">
+    <span class="arch-stage-label">Pre-training · 10.2 M unlabelled clips</span>
+
+    <h4 style="margin-top: 6px;">Step A · Tokenize each frame</h4>
+    <p>
+      A sequence of <strong>T = 16</strong> frames at $960 \times 448$ resolution is fed in. Each
+      frame is patchified into tokens by a 12-layer Vision Transformer encoder. The output for each
+      frame is a $15 \times 7 \times 1536$ tensor — that's a grid of 105 patch tokens, each a
+      1536-dimensional feature vector.
+    </p>
+
+    <h4>Step B · Inverse dynamics — squeeze out the action</h4>
+    <p>
+      A spatiotemporal transformer (ST-Transformer) processes all the visual tokens <em>plus</em> 15
+      learnable <strong>query tokens</strong>, one per frame transition. Causal masking ensures
+      query token $\mathbf{q}_t$ can attend only up to frame $t+1$ — it sees $X_t$ and $X_{t+1}$ but
+      nothing in the future.
+    </p>
+    <p>
+      Each query token emerges as a <strong>latent action</strong> $\mathbf{a}_t \in
+      \mathbb{R}^{1536}$. The dimensionality is critical: too big, and the model cheats by encoding
+      appearance; too small, and motion info is lost. LA-Pose squeezes through a 50-dimensional
+      bottleneck (an MLP compression-decompression pair) to force the action to be motion-centric.
+    </p>
+
+    <h4>Step C · Forward dynamics — predict the next frame</h4>
+    <p>
+      A forward-dynamics ST-Transformer takes the past visual tokens and the latent actions and
+      predicts the <em>next</em> frame. But it doesn't predict raw pixels — that would be lossy and
+      expensive. Instead, it predicts which <strong>VQ-VAE codes</strong> the next frame would have,
+      treating the problem as classification over a fixed visual vocabulary. The training loss is
+      cross-entropy between predicted and true codes.
+    </p>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-label">A subtle but crucial detail</div>
+    <p>
+      The latent action is the model's <em>only</em> conduit for time-varying information from frame
+      $t+1$ back into the prediction. If the action could pass through appearance details directly,
+      the model would never bother learning motion. The compression bottleneck enforces this.
+    </p>
+  </div>
+
+  <!-- ---------- STAGE 2 ---------- -->
+  <h3 id="stage2">4.2 · Stage 2 — Camera pose post-training</h3>
+
+  <div class="arch-stage">
+    <span class="arch-stage-label">Post-training · ~2 300 labelled scenes</span>
+    <p>
+      Now we have a frozen inverse-dynamics model that emits a sequence of latent actions
+      $\{\mathbf{a}_1, \dots, \mathbf{a}_{T-1}\}$ for any input video. Stage 2 attaches a
+      <strong>tiny pose head</strong> on top.
+    </p>
+
+    <h4>The scale token trick</h4>
+    <p>
+      The pose head introduces one extra learnable token — a single 1536-D <strong>metric scale
+      token</strong> — that's prepended to the latent actions. A non-causal self-attention transformer
+      lets the scale token absorb information from the entire sequence, then a pair of MLP heads
+      decode:
+    </p>
+    <div class="kv-grid">
+      <div class="kv">
+        <div class="kv-key">From latent actions</div>
+        <div class="kv-val">7-D pose + 1-D FoV</div>
+      </div>
+      <div class="kv">
+        <div class="kv-key">From scale token</div>
+        <div class="kv-val">1-D metric scale</div>
+      </div>
+    </div>
+    <p>
+      The 7-D pose is 3 translation components (scale-normalised) plus a 4-D quaternion. The metric
+      scale has an exponential activation to guarantee positivity. Disentangling scale from direction
+      makes optimisation more stable — a trick borrowed from monocular geometry methods like MoGe-2.
+    </p>
+  </div>
+
+  <p>
+    The post-training data is tiny compared to pretraining: roughly <strong>2 300 driving scenes</strong>
+    from Waymo, nuScenes, and Argoverse combined, where LiDAR provides perfectly accurate poses. The
+    backbone is <em>frozen</em> by default — the only thing learning at this stage is the lightweight
+    pose head.
+  </p>
+</section>
+
+<!-- ==================== 05 — MATH ==================== -->
+<section class="chapter" id="math">
+  <div class="chapter-num">05 — THE MATH, GENTLY</div>
+  <h2>Building the equations from scratch</h2>
+
+  <p>
+    You don't need fancy math to feel why LA-Pose works, but a few formulas are worth seeing
+    explicitly. We'll derive them so each symbol earns its place.
+  </p>
+
+  <h3>5.1 · The inverse-dynamics objective</h3>
+
+  <p>
+    Given a sequence of frame tokens $s_1, s_2, \dots, s_T$, we want a function $\mathrm{IDM}$ that
+    extracts an action $\mathbf{a}_t$ describing the change from $s_t$ to $s_{t+1}$:
+  </p>
+
+  $$\mathbf{a}_t = \mathrm{IDM}(s_1, s_2, \dots, s_{t+1})$$
+
+  <p>
+    The causal mask ensures $\mathbf{a}_t$ depends only on past and current frames — never future
+    ones. Now we want a forward-dynamics function $\mathrm{FDM}$ that uses $\mathbf{a}_t$ to predict
+    the next frame's discrete tokens $z_{t+1}$ (the VQ-VAE codes):
+  </p>
+
+  $$\hat{z}_{t+1} = \mathrm{FDM}(s_1, \dots, s_t, \mathbf{a}_t)$$
+
+  <p>
+    Training is straightforward cross-entropy between predicted logits and the true codebook indices:
+  </p>
+
+  $$\mathcal{L}_{\text{pre}} = -\sum_{t=1}^{T-1} \sum_{k} z_{t+1}^{(k)} \log \hat{z}_{t+1}^{(k)}$$
+
+  <p>
+    where $k$ indexes over codebook tokens. Notice: no pose labels appear anywhere. The supervision
+    comes entirely from the frames themselves.
+  </p>
+
+  <div class="callout think">
+    <div class="callout-label">Why this gradient teaches geometry</div>
+    <p>
+      Reducing $\mathcal{L}_{\text{pre}}$ requires correctly predicting the spatial layout of the
+      next frame. To do that, the IDM <em>must</em> infer how the camera moved — there's no other way
+      to know whether a tree should appear larger, smaller, or shifted in $X_{t+1}$. Geometry sneaks
+      into the gradient.
+    </p>
+  </div>
+
+  <h3>5.2 · The pose post-training loss</h3>
+
+  <p>
+    At post-training, we have ground-truth metric translations $\{\mathbf{t}_1, \dots, \mathbf{t}_T\}$
+    from LiDAR. LA-Pose splits this into <em>direction</em> and <em>magnitude</em>. First, compute the
+    average translation magnitude as the metric scale:
+  </p>
+
+  $$s = \mathrm{mean}_i\big( \| \mathbf{t}_i \|_2 \big)$$
+
+  <p>
+    Then normalize the translations into a scale-agnostic version:
+  </p>
+
+  $$\tilde{\mathbf{t}}_i = \frac{\mathbf{t}_i}{\max(s, \epsilon)}, \quad \epsilon = 1.0$$
+
+  <p>
+    The network predicts $\hat{\tilde{\mathbf{t}}}_i$, a quaternion $\hat{q}_i$, a field-of-view
+    $\hat{\phi}_i$, and a log-space scale $\widehat{\log s}$. The total post-training loss is an L1
+    sum:
+  </p>
+
+  $$\mathcal{L}_{\text{post}} = \lambda_t \| \tilde{\mathbf{t}} - \hat{\tilde{\mathbf{t}}} \|_1
+  + \lambda_q \| q - \hat{q} \|_1 + \lambda_\phi \| \phi - \hat{\phi} \|_1
+  + \lambda_s \| \log s - \widehat{\log s} \|_1$$
+
+  <p>
+    Predicting $\log s$ rather than $s$ keeps gradients well-behaved across many orders of magnitude
+    of motion (a parked car vs. a highway sprint).
+  </p>
+
+  <h3>5.3 · The metric AUC@5°</h3>
+
+  <p>
+    The headline metric for camera pose is <strong>AUC@5°</strong> — the area under the cumulative
+    error curve up to a 5-degree threshold. For each pair of frames in a test sequence, compute the
+    angular error in rotation and translation:
+  </p>
+
+  $$e_{ij} = \max\Big( \angle(R_i^{-1} R_j, \hat{R}_i^{-1} \hat{R}_j),\
+  \angle(\mathbf{t}_{ij}, \hat{\mathbf{t}}_{ij}) \Big)$$
+
+  <p>
+    Then plot the fraction of pairs with $e < \theta$ as $\theta$ sweeps from 0 to 5°. The area under
+    that curve, normalised, is AUC@5. Higher is better. LA-Pose hits 91.4 % on Waymo — meaning most
+    pairs are accurate to a fraction of a degree.
+  </p>
+</section>
+
+<!-- ==================== 06 — TRAINING ==================== -->
+<section class="chapter" id="training">
+  <div class="chapter-num">06 — TRAINING PIPELINE</div>
+  <h2>From raw clips to a working model</h2>
+
+  <p>
+    Below is the end-to-end picture. The two stages run sequentially: pretraining for ~4 days on 32
+    H100s, then post-training for ~2 days on 8 H100s. Click through the steps.
+  </p>
+
+  <!-- Stepper widget -->
+  <div class="widget">
+    <div class="widget-title">Walkthrough · The training pipeline</div>
+    <div id="stepper" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px;">
+      <button class="btn step-btn active" data-step="0">1 · Data</button>
+      <button class="btn step-btn" data-step="1">2 · Tokenize</button>
+      <button class="btn step-btn" data-step="2">3 · IDM</button>
+      <button class="btn step-btn" data-step="3">4 · FDM</button>
+      <button class="btn step-btn" data-step="4">5 · Pose head</button>
+      <button class="btn step-btn" data-step="5">6 · Inference</button>
+    </div>
+    <svg viewBox="0 0 600 240" class="widget-canvas" style="height: 240px;" id="stepSvg"></svg>
+    <div id="stepDescription" style="margin-top: 18px; font-size: 0.92rem; color: var(--text-dim); min-height: 70px;"></div>
+  </div>
+
+  <h3>Hyperparameters at a glance</h3>
+
+  <div class="kv-grid">
+    <div class="kv"><div class="kv-key">Frames per clip</div><div class="kv-val">16</div></div>
+    <div class="kv"><div class="kv-key">Input resolution</div><div class="kv-val">960 × 448</div></div>
+    <div class="kv"><div class="kv-key">Frame rate (jittered)</div><div class="kv-val">1 – 4 fps</div></div>
+    <div class="kv"><div class="kv-key">Feature dim</div><div class="kv-val">1536</div></div>
+    <div class="kv"><div class="kv-key">Bottleneck dim</div><div class="kv-val">50 (default 1536)</div></div>
+    <div class="kv"><div class="kv-key">Patch grid per frame</div><div class="kv-val">15 × 7</div></div>
+    <div class="kv"><div class="kv-key">Pretrain steps</div><div class="kv-val">160 000</div></div>
+    <div class="kv"><div class="kv-key">Post-train steps</div><div class="kv-val">100 000</div></div>
+    <div class="kv"><div class="kv-key">Peak LR</div><div class="kv-val">1e-4 cosine</div></div>
+    <div class="kv"><div class="kv-key">Pretrain hardware</div><div class="kv-val">32 × H100</div></div>
+  </div>
+
+  <h4>The frame-rate jitter trick</h4>
+
+  <p>
+    During pretraining, the stride between successive frames is randomly sampled between 1 and 4 fps.
+    This forces the model to handle both slow motion (~0.3 m between frames at 4 fps) and fast motion
+    (~3 m at 1 fps). The result is a model that's robust at <strong>inference</strong> when the user
+    might supply video at any sampling rate.
+  </p>
+
+  <p>
+    A complementary trick: positional embeddings use <strong>sinusoidal temporal encoding</strong>
+    projected through an MLP. This means the model knows the exact time gap between two frames, not
+    just that one comes after the other.
+  </p>
+</section>
+
+<!-- ==================== 07 — LATENT SPACE ==================== -->
+<section class="chapter" id="latent-space">
+  <div class="chapter-num">07 — WHAT THE MODEL LEARNS</div>
+  <h2>The hidden structure of motion</h2>
+
+  <p>
+    Here's the beautiful surprise. After pretraining on 10 million unlabelled clips, project the
+    latent actions to 2-D with t-SNE and colour them by ground-truth speed (which the model
+    <em>never saw during training</em>). The structure is undeniable:
+  </p>
+
+  <div class="widget">
+    <div class="widget-title">Interactive · Latent action space, coloured by speed</div>
+    <canvas id="tsneCanvas" class="widget-canvas" style="height: 380px;"></canvas>
+    <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+      <button class="btn tsne-btn active" data-mode="speed">Colour by speed</button>
+      <button class="btn tsne-btn" data-mode="yaw">Colour by yaw (turning)</button>
+      <button class="btn tsne-btn" data-mode="cluster">Show clusters</button>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background: #2bf7b3;"></span> Fast forward</span>
+      <span class="legend-item"><span class="legend-dot" style="background: #4dd6f6;"></span> Medium</span>
+      <span class="legend-item"><span class="legend-dot" style="background: #8a8bff;"></span> Slow / stopped</span>
+      <span class="legend-item"><span class="legend-dot" style="background: #f178c9;"></span> Sharp turn</span>
+    </div>
+    <p style="font-size: 0.84rem; color: var(--text-mute); margin-top: 12px; margin-bottom: 0;">
+      Each point is a single latent action $\mathbf{a}_t$. The model arranged them by motion
+      kinematics with no supervision. This is the visual proof that the IDM has learned a meaningful
+      motion representation — and is exactly why a tiny pose head can decode pose from it later.
+    </p>
+  </div>
+
+  <p>
+    To appreciate what this means: the t-SNE plot shown by the LA-Pose authors on their project page
+    has visibly clean clusters for "going straight slow," "going straight fast," "turning left,"
+    "turning right" — without ever telling the model what those concepts are. That's emergent
+    structure, the same flavour of magic that made GPT and DINO famous.
+  </p>
+
+  <div class="callout">
+    <div class="callout-label">Why this matters for transfer</div>
+    <p>
+      Because the latent space is already organised by motion, the post-training head doesn't have to
+      learn motion <em>from scratch</em>. It just needs to learn the right linear-ish mapping from
+      "this region of latent space" to "metric pose values." That's why so few labels suffice.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== 08 — RESULTS ==================== -->
+<section class="chapter" id="results">
+  <div class="chapter-num">08 — RESULTS</div>
+  <h2>How well does it actually work?</h2>
+
+  <p>
+    The headline benchmark is <em>AUC@5</em> on Waymo (in-distribution) and PandaSet (zero-shot,
+    completely unseen during training). Higher is better. The contenders: Rig3R, VGGT, and MapAnything,
+    all state-of-the-art feed-forward 3D methods trained with much more labelled data.
+  </p>
+
+  <h3>Waymo benchmark (in-distribution)</h3>
+
+  <div class="widget">
+    <div class="widget-title">Pose accuracy · AUC@5° on Waymo</div>
+    <div class="bench-row">
+      <span class="bench-name">MapAnything</span>
+      <div class="bench-bar-bg"><div class="bench-bar" style="width: 65%; background: linear-gradient(90deg, #4a5568, #6b7280);"></div></div>
+      <span class="bench-val">65.0</span>
+    </div>
+    <div class="bench-row">
+      <span class="bench-name">VGGT</span>
+      <div class="bench-bar-bg"><div class="bench-bar" style="width: 74.8%; background: linear-gradient(90deg, #4dd6f6, #38bdf8);"></div></div>
+      <span class="bench-val">74.8</span>
+    </div>
+    <div class="bench-row">
+      <span class="bench-name">Rig3R</span>
+      <div class="bench-bar-bg"><div class="bench-bar" style="width: 77.9%; background: linear-gradient(90deg, #f178c9, #ec4899);"></div></div>
+      <span class="bench-val">77.9</span>
+    </div>
+    <div class="bench-row" style="font-weight: 700;">
+      <span class="bench-name" style="color: var(--la-green);">LA-Pose</span>
+      <div class="bench-bar-bg"><div class="bench-bar" style="width: 91.4%; background: linear-gradient(90deg, #2bf7b3, #34d399); box-shadow: 0 0 16px rgba(43, 247, 179, 0.4);"></div></div>
+      <span class="bench-val" style="color: var(--la-green);">91.4</span>
+    </div>
+  </div>
+
+  <h3>PandaSet (zero-shot — model never saw this distribution)</h3>
+
+  <div class="widget">
+    <div class="widget-title">Generalisation · AUC@5° on PandaSet</div>
+    <div class="bench-row">
+      <span class="bench-name">MapAnything</span>
+      <div class="bench-bar-bg"><div class="bench-bar" style="width: 62.4%; background: linear-gradient(90deg, #4a5568, #6b7280);"></div></div>
+      <span class="bench-val">62.4</span>
+    </div>
+    <div class="bench-row">
+      <span class="bench-name">VGGT</span>
+      <div class="bench-bar-bg"><div class="bench-bar" style="width: 75%; background: linear-gradient(90deg, #4dd6f6, #38bdf8);"></div></div>
+      <span class="bench-val">75.0</span>
+    </div>
+    <div class="bench-row" style="font-weight: 700;">
+      <span class="bench-name" style="color: var(--la-green);">LA-Pose</span>
+      <div class="bench-bar-bg"><div class="bench-bar" style="width: 86.3%; background: linear-gradient(90deg, #2bf7b3, #34d399); box-shadow: 0 0 16px rgba(43, 247, 179, 0.4);"></div></div>
+      <span class="bench-val" style="color: var(--la-green);">86.3</span>
+    </div>
+  </div>
+
+  <p>
+    Beyond means: <strong>variance matters</strong>. The paper plots the distribution of per-scene
+    AUC scores and shows that LA-Pose's predictions cluster near perfect, while VGGT has a long tail
+    of failures. The model is reliable, not just on-average correct.
+  </p>
+
+  <h3>Robustness across frame rates</h3>
+
+  <p>
+    Because of the fps jitter during training, LA-Pose holds up well as you sparsen the input video.
+    At 1 fps — only one frame per second, a brutal regime — it still gets 85.7 % AUC@5.
+  </p>
+
+  <table class="data">
+    <tr><th>FPS</th><th>Method</th><th class="num">AUC@5 ↑</th><th class="num">ATE-S ×10⁻² ↓</th></tr>
+    <tr><td>4.0</td><td>VGGT</td><td class="num">74.1</td><td class="num">1.03</td></tr>
+    <tr class="highlight"><td>4.0</td><td>LA-Pose</td><td class="num">93.4</td><td class="num">0.87</td></tr>
+    <tr><td>1.3</td><td>VGGT</td><td class="num">75.0</td><td class="num">1.21</td></tr>
+    <tr class="highlight"><td>1.3</td><td>LA-Pose</td><td class="num">88.6</td><td class="num">1.20</td></tr>
+    <tr><td>1.0</td><td>VGGT</td><td class="num">74.6</td><td class="num">1.43</td></tr>
+    <tr class="highlight"><td>1.0</td><td>LA-Pose</td><td class="num">85.7</td><td class="num">1.16</td></tr>
+  </table>
+
+  <h3>The "freeze vs fine-tune" insight</h3>
+
+  <p>
+    A counter-intuitive ablation: <strong>freezing the pretrained backbone generalises better than
+    fine-tuning it</strong>. On in-distribution Waymo, both work equally well. But on zero-shot
+    PandaSet, fine-tuning degrades performance — because the small labelled set drags the
+    representation toward Waymo's specific distribution, eroding the rich motion priors learned from
+    10 M videos.
+  </p>
+
+  <div class="callout">
+    <div class="callout-label">Lesson for practitioners</div>
+    <p>
+      If your goal is generalisation, <em>keep the pretrained features frozen</em>. The post-training
+      stage is for adaptation of the readout, not the representation. This echoes findings from
+      DINO, CLIP, and a growing literature on foundation-model transfer.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== 09 — COMPARISON ==================== -->
+<section class="chapter" id="comparison">
+  <div class="chapter-num">09 — COMPARISON</div>
+  <h2>How LA-Pose differs from the field</h2>
+
+  <table class="data">
+    <tr>
+      <th>Method</th>
+      <th>Family</th>
+      <th>Supervision</th>
+      <th>Inference cost</th>
+      <th>Generalisation</th>
+    </tr>
+    <tr>
+      <td>COLMAP / SfM</td><td>Classical</td><td>None (geometric)</td><td>High (iterative)</td><td>Strong but slow</td>
+    </tr>
+    <tr>
+      <td>PoseNet</td><td>Direct regression</td><td>Heavy 3D</td><td>Low</td><td>Poor</td>
+    </tr>
+    <tr>
+      <td>DUSt3R / VGGT</td><td>Feed-fwd 3D</td><td>Heavy 3D (LiDAR)</td><td>Low</td><td>Good in-domain</td>
+    </tr>
+    <tr>
+      <td>Genie / LAPA</td><td>Latent action (gen)</td><td>Self-supervised</td><td>—</td><td>For control, not pose</td>
+    </tr>
+    <tr class="highlight">
+      <td>LA-Pose</td><td>Latent action (pose)</td><td>~10M unlabelled + tiny labelled</td><td>Low (feed-fwd)</td><td>Strong, even zero-shot</td>
+    </tr>
+  </table>
+
+  <p>
+    The key distinction is the <em>purpose</em> of latent actions. Genie used them to make controllable
+    video games. LAPA used them as proxies for robot policy actions. LA-Pose is the first work to use
+    them for <strong>geometric inference</strong> — and it turns out that's where they shine for ego-motion.
+  </p>
+</section>
+
+<!-- ==================== 10 — LIMITATIONS ==================== -->
+<section class="chapter" id="limits">
+  <div class="chapter-num">10 — LIMITATIONS & OPEN QUESTIONS</div>
+  <h2>What still breaks</h2>
+
+  <p>
+    No method is universal, and LA-Pose's authors are admirably explicit about its failure modes.
+  </p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-title">Reverse motion</div>
+      <div class="card-desc">
+        Backing up is rare in driving datasets. The pose head was trained almost entirely on forward
+        motion and so estimates become unstable when the car reverses. A larger and more diverse
+        post-training set would fix this.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Medium-curvature trajectories</div>
+      <div class="card-desc">
+        Gentle steering (~0.01 – 0.1 m⁻¹) creates subtle frame-to-frame changes that are easy to
+        confuse with straight motion. Sharp turns are surprisingly easier because the visual cue is
+        unambiguous.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Non-driving domains</div>
+      <div class="card-desc">
+        The pretraining corpus is driving-specific. Transferring to indoor robotics or aerial footage
+        would require pretraining on those domains too. The recipe is general; the weights aren't.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">No structure</div>
+      <div class="card-desc">
+        LA-Pose outputs camera pose, not dense geometry. Methods like DUSt3R also produce pointmaps.
+        For full 3D reconstruction you'd pair LA-Pose poses with a depth model.
+      </div>
+    </div>
+  </div>
+
+  <h3>Open research directions</h3>
+
+  <ul style="line-height: 1.9; color: var(--text-dim);">
+    <li>Scaling pretraining beyond driving to "in-the-wild embodied videos" — handheld, head-mounted, drone footage.</li>
+    <li>Joint training of latent action + depth + 3D structure into a single foundation model.</li>
+    <li>Distilling latent-action features into smaller backbones for on-vehicle deployment.</li>
+    <li>Multi-view extensions — current LA-Pose is monocular and front-facing.</li>
+  </ul>
+</section>
+
+<!-- ==================== 11 — APPLY ==================== -->
+<section class="chapter" id="apply">
+  <div class="chapter-num">11 — APPLY IT YOURSELF</div>
+  <h2>Adapting LA-Pose to your dataset</h2>
+
+  <p>
+    Suppose you don't have a fleet of LiDAR-equipped vehicles, but you do have a stack of GoPro
+    footage, a research robot, or just a YouTube playlist. Can you build something like LA-Pose? Yes —
+    and the pieces are surprisingly modular. Here's a practical playbook.
+  </p>
+
+  <h3>11.1 · Required data and format</h3>
+
+  <p>You need two pools of video data.</p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-title">Pool A · Unlabelled video (large)</div>
+      <div class="card-desc">
+        Hundreds of thousands of short clips, no annotations. For driving: dashcam, YouTube, fleet
+        recordings. For indoor robotics: any handheld walks. Crucial: clips should cover the
+        <em>motion distribution</em> you care about.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Pool B · Labelled video (small)</div>
+      <div class="card-desc">
+        A few hundred to a few thousand sequences with accurate poses. Sources: LiDAR-based SLAM,
+        COLMAP runs, motion-capture, or simulator ground truth. Quality matters far more than
+        quantity here.
+      </div>
+    </div>
+  </div>
+
+  <h3>11.2 · Recommended folder structure</h3>
+
+  <pre><code class="language-bash">la_pose_project/
+├── data/
+│   ├── unlabeled/                   # Pool A
+│   │   ├── shard_0000.tar           # WebDataset shards work great
+│   │   ├── shard_0001.tar
+│   │   └── ...
+│   └── labeled/                     # Pool B
+│       ├── waymo/
+│       │   ├── scene_001/
+│       │   │   ├── frames/000.jpg ... 015.jpg
+│       │   │   └── poses.npy        # shape (T, 4, 4) — SE(3) per frame
+│       │   └── ...
+│       └── manifest.json
+├── checkpoints/
+├── configs/
+│   ├── pretrain.yaml
+│   └── posttrain.yaml
+└── scripts/
+    ├── extract_clips.py
+    ├── train_idm.py
+    └── train_posehead.py</code></pre>
+
+  <h3>11.3 · Building frame pairs</h3>
+
+  <p>
+    The pretraining sample is just a sequence of 16 frames at a random fps. Sample stride uniformly
+    from {1, 2, 3, 4} (or whatever range matches your domain) — this is the temporal jitter that
+    makes the model frame-rate-agnostic.
+  </p>
+
+  <pre><code class="language-python">import random
+import numpy as np
+from PIL import Image
+
+def make_training_sample(video_path, T=16, target_size=(960, 448)):
+    """Return a stack of T frames at a randomised frame stride."""
+    n_frames = count_frames(video_path)
+    stride = random.choice([1, 2, 3, 4])      # 4 fps → 1 fps roughly
+    start = random.randint(0, n_frames - stride * T - 1)
+    indices = [start + i * stride for i in range(T)]
+    frames = [load_frame(video_path, i, size=target_size) for i in indices]
+    return np.stack(frames), stride           # shape (16, H, W, 3)</code></pre>
+
+  <h3>11.4 · Minimal IDM/FDM training loop</h3>
+
+  <p>
+    This is pseudo-code that captures the structural skeleton — your real code will have far more
+    bells and whistles (mixed-precision, gradient accumulation, EMA, etc.).
+  </p>
+
+  <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class LatentActionModel(nn.Module):
+    def __init__(self, dim=1536, bottleneck=50, n_frames=16):
+        super().__init__()
+        self.tokenizer = VisionTransformer(dim=dim)        # 12-layer ViT
+        self.idm = SpatioTemporalTransformer(dim=dim)      # inverse dyn.
+        self.fdm = SpatioTemporalTransformer(dim=dim)      # forward dyn.
+        self.compress = nn.Sequential(                     # MLP bottleneck
+            nn.Linear(dim, 512), nn.GELU(),
+            nn.Linear(512, bottleneck))
+        self.decompress = nn.Sequential(
+            nn.Linear(bottleneck, 512), nn.GELU(),
+            nn.Linear(512, dim))
+        self.query = nn.Parameter(torch.randn(n_frames - 1, dim) * 0.02)
+        self.vq_predictor = nn.Linear(dim, VQ_CODEBOOK_SIZE)
+
+    def forward(self, frames):
+        # 1. Tokenize every frame
+        tokens = self.tokenizer(frames)                    # (B, T, P, dim)
+        B, T, P, D = tokens.shape
+
+        # 2. Inverse dynamics → latent actions
+        q = self.query.unsqueeze(0).expand(B, -1, -1)      # (B, T-1, D)
+        actions = self.idm(tokens, q)                      # (B, T-1, D)
+        actions = self.decompress(self.compress(actions))  # squeeze + expand
+
+        # 3. Forward dynamics → predict next-frame codes
+        logits = self.vq_predictor(self.fdm(tokens[:, :-1], actions))
+        return logits, actions
+
+# --- training step ---
+def step(model, batch, vq_encoder):
+    frames = batch["frames"].cuda()                        # (B, 16, H, W, 3)
+    with torch.no_grad():
+        target_codes = vq_encoder.encode(frames[:, 1:])    # (B, 15, P_codes)
+    logits, _ = model(frames)
+    loss = F.cross_entropy(logits.flatten(0, -2),
+                           target_codes.flatten())
+    loss.backward()
+    return loss.item()</code></pre>
+
+  <h3>11.5 · The pose head</h3>
+
+  <pre><code class="language-python">class PoseHead(nn.Module):
+    """Decodes 7-DoF pose + FoV + metric scale from latent actions."""
+    def __init__(self, dim=1536, n_actions=15):
+        super().__init__()
+        self.scale_token = nn.Parameter(torch.randn(1, dim) * 0.02)
+        self.attn = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(dim, nhead=8, batch_first=True),
+            num_layers=4)
+        self.pose_mlp = nn.Linear(dim, 8)   # 3 trans + 4 quat + 1 FoV
+        self.scale_mlp = nn.Linear(dim, 1)  # log scale → exp later
+
+    def forward(self, actions):              # (B, 15, D)
+        B = actions.size(0)
+        scale_tok = self.scale_token.expand(B, 1, -1)
+        x = torch.cat([scale_tok, actions], dim=1)
+        x = self.attn(x)
+        scale = torch.exp(self.scale_mlp(x[:, 0]))           # metric scale
+        pose = self.pose_mlp(x[:, 1:])                       # (B, 15, 8)
+        trans, quat, fov = pose[..., :3], pose[..., 3:7], pose[..., 7:]
+        quat = quat / quat.norm(dim=-1, keepdim=True)
+        return trans, quat, fov, scale</code></pre>
+
+  <h3>11.6 · Pose post-training loss</h3>
+
+  <pre><code class="language-python">def pose_loss(pred, target):
+    trans_p, quat_p, fov_p, scale_p = pred
+    trans_t, quat_t, fov_t, scale_t = target
+
+    # Normalise target translations by the same scale
+    s = scale_t.clamp(min=1.0)
+    trans_t_norm = trans_t / s.unsqueeze(-1)
+
+    L_t = (trans_p - trans_t_norm).abs().mean()
+    L_q = (quat_p - quat_t).abs().mean()
+    L_f = (fov_p - fov_t).abs().mean()
+    L_s = (scale_p.log() - scale_t.log()).abs().mean()
+
+    return L_t + L_q + 0.1 * L_f + 0.5 * L_s</code></pre>
+
+  <h3>11.7 · Compute budget — for a smaller project</h3>
+
+  <p>
+    The full 32-H100 pretrain is overkill for most labs. Realistic scaled-down setups:
+  </p>
+
+  <div class="kv-grid">
+    <div class="kv">
+      <div class="kv-key">Tiny (proof of concept)</div>
+      <div class="kv-val">1× A6000 · 100k clips · 5–7 days</div>
+    </div>
+    <div class="kv">
+      <div class="kv-key">Small (research)</div>
+      <div class="kv-val">4× A100 · 1M clips · ~1 week</div>
+    </div>
+    <div class="kv">
+      <div class="kv-key">Medium</div>
+      <div class="kv-val">8× H100 · 3M clips · ~5 days</div>
+    </div>
+    <div class="kv">
+      <div class="kv-key">Full paper</div>
+      <div class="kv-val">32× H100 · 10M clips · 4 days</div>
+    </div>
+  </div>
+
+  <h3>11.8 · Debugging checklist</h3>
+
+  <p>When your reproduction looks off, the usual suspects:</p>
+
+  <ul style="line-height: 1.9; color: var(--text-dim);">
+    <li><strong>Latent dim too large?</strong> If pre-training loss drops fast but pose accuracy is bad,
+    the bottleneck is letting appearance leak. Try squeezing to 50–128.</li>
+    <li><strong>Quaternion not normalised?</strong> Always project to unit norm at the output, and
+    consider double-cover handling ($q$ and $-q$ are the same rotation).</li>
+    <li><strong>Scale exploding?</strong> Predict $\log s$, not $s$, and add a soft clamp on the output.</li>
+    <li><strong>FPS distribution mismatch?</strong> If you train at 4 fps and test at 1 fps, expect a drop.
+    Train with stride jitter from day one.</li>
+    <li><strong>Bad PandaSet-style generalisation?</strong> Confirm the backbone is <em>frozen</em> during post-training.</li>
+  </ul>
+
+  <h3>11.9 · Recommended libraries</h3>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-title">PyTorch + Lightning</div>
+      <div class="card-desc">Core training. Lightning handles distributed plumbing well for the multi-GPU runs.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">timm</div>
+      <div class="card-desc">Pretrained ViT backbones for the tokenizer. Saves you weeks.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">WebDataset</div>
+      <div class="card-desc">Streaming TAR shards from object storage. Essential for 10M-clip pipelines.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">PyTorch3D</div>
+      <div class="card-desc">Quaternion math, SE(3) utilities, plus visualisation helpers.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">evo</div>
+      <div class="card-desc">Standard trajectory evaluation (ATE, RPE) — the metrics LA-Pose reports.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Hydra</div>
+      <div class="card-desc">Config management for the dozens of knobs you'll inevitably tune.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 12 — FURTHER READING ==================== -->
+<section class="chapter" id="further">
+  <div class="chapter-num">12 — FURTHER READING</div>
+  <h2>Where to go next</h2>
+
+  <div class="cards">
+    <a href="https://arxiv.org/abs/2402.15391" target="_blank" rel="noopener" class="card" style="border-bottom: 1px solid var(--border);">
+      <div class="card-title">Genie (DeepMind, 2024)</div>
+      <div class="card-desc">The original latent-action architecture LA-Pose adapts. Builds interactive game worlds from passive video.</div>
+    </a>
+    <a href="https://arxiv.org/abs/2410.11758" target="_blank" rel="noopener" class="card" style="border-bottom: 1px solid var(--border);">
+      <div class="card-title">LAPA · Latent Action Pretraining</div>
+      <div class="card-desc">Uses the same trick for robot policy learning. Worth reading for the alternate downstream use.</div>
+    </a>
+    <a href="https://arxiv.org/abs/2312.14132" target="_blank" rel="noopener" class="card" style="border-bottom: 1px solid var(--border);">
+      <div class="card-title">DUSt3R</div>
+      <div class="card-desc">Feed-forward dense 3D reconstruction. The supervised counterpart LA-Pose competes with.</div>
+    </a>
+    <a href="https://arxiv.org/abs/2503.11651" target="_blank" rel="noopener" class="card" style="border-bottom: 1px solid var(--border);">
+      <div class="card-title">VGGT</div>
+      <div class="card-desc">Visual Geometry Grounded Transformer — the strongest feed-forward 3D baseline in the paper.</div>
+    </a>
+    <a href="https://arxiv.org/abs/2305.13301" target="_blank" rel="noopener" class="card" style="border-bottom: 1px solid var(--border);">
+      <div class="card-title">DINOv2</div>
+      <div class="card-desc">The canonical self-supervised vision encoder. Useful intuition for "why frozen features generalise."</div>
+    </a>
+    <a href="https://arxiv.org/abs/2404.08471" target="_blank" rel="noopener" class="card" style="border-bottom: 1px solid var(--border);">
+      <div class="card-title">V-JEPA / V-JEPA 2</div>
+      <div class="card-desc">Predictive self-supervised video models. Another flavour of "predict the future to learn the world."</div>
+    </a>
+    <a href="https://arxiv.org/abs/2309.17080" target="_blank" rel="noopener" class="card" style="border-bottom: 1px solid var(--border);">
+      <div class="card-title">GAIA-1 (Wayve)</div>
+      <div class="card-desc">A driving world model from the same lab. Provides context for LA-Pose's research direction.</div>
+    </a>
+    <a href="https://la-pose.github.io/" target="_blank" rel="noopener" class="card" style="border-bottom: 1px solid var(--border);">
+      <div class="card-title">LA-Pose project page</div>
+      <div class="card-desc">Official site with interactive latent-space demo and in-the-wild YouTube driving videos.</div>
+    </a>
+  </div>
+
+  <div class="callout" style="margin-top: 3rem;">
+    <div class="callout-label">Cite this paper</div>
+    <pre style="background: transparent; border: none; padding: 8px 0; font-size: 0.78rem; color: var(--text-dim); margin: 0; overflow-x: auto;">@inproceedings{Wang2026LAPose,
+  author    = {Wang, Zhengqing and Nair, Saurabh and Chidananda, Prajwal and
+               Kachana, Pujith and Li, Samuel and Brown, Matthew and Furukawa, Yasutaka},
+  title     = {LA-Pose: Latent Action Pretraining Meets Pose Estimation},
+  booktitle = {CVPR},
+  year      = {2026},
+}</pre>
+  </div>
+</section>
+
+<footer>
+  <p>
+    An unofficial educational walkthrough of <a href="https://arxiv.org/abs/2604.27448" target="_blank" rel="noopener">LA-Pose (Wang et al., CVPR 2026)</a>.
+  </p>
+  <p style="margin-top: 8px; font-size: 0.78rem;">
+    Built with hand-written SVG, Canvas, and a great deal of curiosity. All credit for the research goes to the original authors.
+  </p>
+</footer>
+
+</main>
+</div>
+
+<!-- ============================================== -->
+<!-- ============== JAVASCRIPT ==================== -->
+<!-- ============================================== -->
+<script>
+/* ---------------- SCROLLSPY TOC ---------------- */
+(function() {
+  const tocLinks = document.querySelectorAll('.toc a');
+  const sections = [...tocLinks].map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+  function onScroll() {
+    const y = window.scrollY + 120;
+    let activeIndex = 0;
+    sections.forEach((sec, i) => {
+      if (sec && sec.offsetTop <= y) activeIndex = i;
+    });
+    tocLinks.forEach(l => l.classList.remove('active'));
+    if (tocLinks[activeIndex]) tocLinks[activeIndex].classList.add('active');
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+/* ---------------- HERO CANVAS · trajectory particles ---------------- */
+(function() {
+  const canvas = document.getElementById('hero-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let w, h, particles = [];
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    w = canvas.width = canvas.offsetWidth * dpr;
+    h = canvas.height = canvas.offsetHeight * dpr;
+    ctx.scale(dpr, dpr);
+    w = canvas.offsetWidth;
+    h = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', () => { ctx.setTransform(1,0,0,1,0,0); resize(); init(); });
+
+  class Trajectory {
+    constructor() { this.reset(true); }
+    reset(initial) {
+      this.points = [];
+      const startX = Math.random() * w;
+      const startY = h * 0.4 + Math.random() * h * 0.55;
+      this.x = startX; this.y = startY;
+      this.vx = (Math.random() - 0.5) * 1.0;
+      this.vy = -Math.random() * 0.6 - 0.2;
+      this.curveAccel = (Math.random() - 0.5) * 0.015;
+      this.life = 0;
+      this.maxLife = 220 + Math.random() * 200;
+      this.color = Math.random() > 0.7 ? '#2bf7b3' : (Math.random() > 0.5 ? '#4dd6f6' : '#8a8bff');
+      this.alpha = initial ? Math.random() * 0.6 : 0.9;
+    }
+    step() {
+      this.vx += this.curveAccel;
+      this.x += this.vx;
+      this.y += this.vy;
+      this.points.push({x: this.x, y: this.y});
+      if (this.points.length > 60) this.points.shift();
+      this.life++;
+      if (this.life > this.maxLife || this.x < -50 || this.x > w + 50 || this.y < -50) this.reset(false);
+    }
+    draw() {
+      if (this.points.length < 2) return;
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = 1.1;
+      ctx.globalAlpha = this.alpha * 0.45;
+      ctx.beginPath();
+      ctx.moveTo(this.points[0].x, this.points[0].y);
+      for (let i = 1; i < this.points.length; i++) {
+        ctx.lineTo(this.points[i].x, this.points[i].y);
+      }
+      ctx.stroke();
+      // head
+      ctx.globalAlpha = this.alpha * 0.9;
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 1.7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function init() { particles = Array.from({length: 26}, () => new Trajectory()); }
+  init();
+
+  function loop() {
+    ctx.fillStyle = 'rgba(7, 9, 15, 0.08)';
+    ctx.fillRect(0, 0, w, h);
+    particles.forEach(p => { p.step(); p.draw(); });
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+/* ---------------- INTERACTIVE 6-DoF POSE WIDGET ---------------- */
+(function() {
+  const svg = document.getElementById('poseSvg');
+  if (!svg) return;
+  const txSlider = document.getElementById('poseTx');
+  const tzSlider = document.getElementById('poseTz');
+  const yawSlider = document.getElementById('poseYaw');
+  const pitchSlider = document.getElementById('posePitch');
+  const txVal = document.getElementById('poseTxVal');
+  const tzVal = document.getElementById('poseTzVal');
+  const yawVal = document.getElementById('poseYawVal');
+  const pitchVal = document.getElementById('posePitchVal');
+
+  // Top-down projection of world to SVG
+  const W = 560, H = 320;
+  const cx = W / 2, cy = H / 2;
+  const scale = 50; // units → pixels
+
+  function project(x, z) { return { x: cx + x * scale, y: cy - z * scale }; }
+
+  function render() {
+    const tx = parseFloat(txSlider.value);
+    const tz = parseFloat(tzSlider.value);
+    const yaw = parseFloat(yawSlider.value) * Math.PI / 180;
+    const pitch = parseFloat(pitchSlider.value); // for visual indicator
+
+    txVal.textContent = tx.toFixed(2);
+    tzVal.textContent = tz.toFixed(2);
+    yawVal.textContent = yawSlider.value + '°';
+    pitchVal.textContent = pitchSlider.value + '°';
+
+    let html = '';
+    // Grid (top-down)
+    html += `<defs>
+      <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+        <path d="M50 0H0V50" stroke="rgba(255,255,255,0.04)" fill="none"/>
+      </pattern>
+    </defs>`;
+    html += `<rect width="${W}" height="${H}" fill="url(#grid)"/>`;
+
+    // Origin marker (world)
+    const o = project(0, 0);
+    html += `<circle cx="${o.x}" cy="${o.y}" r="3" fill="#6a7591"/>`;
+    html += `<text x="${o.x + 7}" y="${o.y + 4}" font-family="JetBrains Mono" font-size="9" fill="#6a7591">world origin</text>`;
+    // Axes labels
+    html += `<text x="${W - 22}" y="${cy + 4}" font-family="JetBrains Mono" font-size="9" fill="#6a7591">+x</text>`;
+    html += `<text x="${cx + 6}" y="14" font-family="JetBrains Mono" font-size="9" fill="#6a7591">+z (fwd)</text>`;
+    // Axis lines
+    html += `<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="rgba(255,255,255,0.07)"/>`;
+    html += `<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="rgba(255,255,255,0.07)"/>`;
+
+    // Camera position
+    const p = project(tx, tz);
+
+    // Frustum: a triangle in the direction of yaw (rotated about z)
+    const fovRad = 0.7; // ~40° half-FoV in viz
+    const range = 2.5;
+    const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+    // Camera forward axis (yaw=0 points along +z)
+    const f1 = { x: tx + range * (-sinY - Math.tan(fovRad) * cosY), z: tz + range * (cosY - Math.tan(fovRad) * sinY) };
+    const f2 = { x: tx + range * (-sinY + Math.tan(fovRad) * cosY), z: tz + range * (cosY + Math.tan(fovRad) * sinY) };
+    // Wait — re-derive: forward at yaw 0 is (0, 1) in (x,z). Rotating by yaw gives (-sin(yaw), cos(yaw))
+    // Let's redo cleanly:
+    const fwdX = -sinY, fwdZ = cosY;
+    const rightX = cosY, rightZ = sinY;
+    const halfW = Math.tan(fovRad) * range;
+    const c1 = { x: tx + range * fwdX + halfW * rightX, z: tz + range * fwdZ + halfW * rightZ };
+    const c2 = { x: tx + range * fwdX - halfW * rightX, z: tz + range * fwdZ - halfW * rightZ };
+    const pc1 = project(c1.x, c1.z);
+    const pc2 = project(c2.x, c2.z);
+
+    html += `<path d="M${p.x} ${p.y} L${pc1.x} ${pc1.y} L${pc2.x} ${pc2.y} Z"
+              fill="rgba(43, 247, 179, 0.10)" stroke="#2bf7b3" stroke-width="1.5"/>`;
+
+    // Translation vector from origin
+    html += `<line x1="${o.x}" y1="${o.y}" x2="${p.x}" y2="${p.y}"
+              stroke="#ffc15c" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+    html += `<text x="${(o.x + p.x)/2 + 4}" y="${(o.y + p.y)/2 - 4}" font-family="JetBrains Mono" font-size="9" fill="#ffc15c">t</text>`;
+
+    // Camera body
+    html += `<circle cx="${p.x}" cy="${p.y}" r="6" fill="#2bf7b3" stroke="#07090f" stroke-width="2"/>`;
+
+    // Pitch indicator
+    const pitchBar = `M${p.x - 18} ${p.y + 18} L${p.x + 18} ${p.y + 18 - pitch * 0.4}`;
+    html += `<path d="${pitchBar}" stroke="#8a8bff" stroke-width="1.5" fill="none" opacity="0.7"/>`;
+    html += `<text x="${p.x - 22}" y="${p.y + 32}" font-family="JetBrains Mono" font-size="8" fill="#8a8bff">pitch</text>`;
+
+    svg.innerHTML = html;
+  }
+
+  [txSlider, tzSlider, yawSlider, pitchSlider].forEach(s => s.addEventListener('input', render));
+  render();
+})();
+
+/* ---------------- LATENT ACTION CONCEPT SVG ---------------- */
+(function() {
+  const svg = document.getElementById('latentSvg');
+  if (!svg) return;
+  const W = 600, H = 220;
+  let html = '';
+  html += `<defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2bf7b3"/>
+    </marker>
+  </defs>`;
+
+  // Frame 1
+  html += `<rect x="30" y="55" width="110" height="110" rx="6" fill="#0d1220" stroke="#1b2238" stroke-width="1"/>`;
+  html += `<rect x="55" y="100" width="60" height="40" fill="#1b2238"/>`; // car shape
+  html += `<circle cx="65" cy="140" r="6" fill="#2a3554"/><circle cx="105" cy="140" r="6" fill="#2a3554"/>`;
+  html += `<text x="85" y="48" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#9aa3b8">X_t</text>`;
+
+  // Frame 2 (car shifted)
+  html += `<rect x="460" y="55" width="110" height="110" rx="6" fill="#0d1220" stroke="#1b2238" stroke-width="1"/>`;
+  html += `<rect x="495" y="100" width="60" height="40" fill="#1b2238" transform="rotate(8 525 120)"/>`;
+  html += `<circle cx="500" cy="140" r="6" fill="#2a3554" transform="rotate(8 525 120)"/>`;
+  html += `<circle cx="540" cy="140" r="6" fill="#2a3554" transform="rotate(8 525 120)"/>`;
+  html += `<text x="515" y="48" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#9aa3b8">X_{t+1}</text>`;
+
+  // Bottleneck in middle
+  html += `<rect x="270" y="92" width="60" height="36" rx="18" fill="rgba(43, 247, 179, 0.1)" stroke="#2bf7b3" stroke-width="1.5"/>`;
+  html += `<text x="300" y="115" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="14" fill="#2bf7b3">a_t</text>`;
+  html += `<text x="300" y="146" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6a7591">50-D latent</text>`;
+  html += `<text x="300" y="80" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#9aa3b8">tiny bottleneck</text>`;
+
+  // Arrows
+  html += `<path d="M150 110 Q200 110 260 110" stroke="#9aa3b8" stroke-width="1.2" fill="none" marker-end="url(#arr)" opacity="0.6"/>`;
+  html += `<path d="M340 110 Q380 110 450 110" stroke="#2bf7b3" stroke-width="1.5" fill="none" marker-end="url(#arr)" opacity="0.9"/>`;
+
+  html += `<text x="200" y="100" font-family="JetBrains Mono" font-size="8" fill="#6a7591">IDM</text>`;
+  html += `<text x="395" y="100" font-family="JetBrains Mono" font-size="8" fill="#2bf7b3">FDM predicts</text>`;
+
+  // Bottom caption
+  html += `<text x="${W/2}" y="200" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" fill="#9aa3b8">
+    Inverse model squeezes change into a_t · Forward model uses a_t to predict next frame
+  </text>`;
+
+  svg.innerHTML = html;
+})();
+
+/* ---------------- ARCHITECTURE FLOW SVG ---------------- */
+(function() {
+  const svg = document.getElementById('archSvg');
+  if (!svg) return;
+  const W = 760, H = 460;
+  let html = '';
+
+  html += `<defs>
+    <marker id="aarr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9aa3b8"/>
+    </marker>
+    <marker id="aarrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2bf7b3"/>
+    </marker>
+    <linearGradient id="gradStage1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="rgba(43, 247, 179, 0.04)"/>
+      <stop offset="100%" stop-color="rgba(43, 247, 179, 0.01)"/>
+    </linearGradient>
+  </defs>`;
+
+  // Stage 1 box
+  html += `<rect x="20" y="20" width="${W - 40}" height="200" rx="12" fill="url(#gradStage1)" stroke="rgba(43,247,179,0.18)" stroke-dasharray="4 4"/>`;
+  html += `<text x="40" y="44" font-family="JetBrains Mono" font-size="10" fill="#2bf7b3" letter-spacing="2">STAGE 1 · SELF-SUPERVISED PRETRAINING (10.2 M VIDEOS)</text>`;
+
+  // Frames
+  for (let i = 0; i < 5; i++) {
+    const x = 50 + i * 36;
+    html += `<rect x="${x}" y="80" width="30" height="22" rx="3" fill="#1b2238" stroke="#2a3554"/>`;
+    html += `<rect x="${x + 5}" y="86" width="20" height="10" fill="#0d1220"/>`;
+    html += `<text x="${x + 15}" y="74" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#6a7591">X${i+1}</text>`;
+  }
+  html += `<text x="237" y="92" font-family="JetBrains Mono" font-size="13" fill="#6a7591">...</text>`;
+  html += `<text x="115" y="124" font-family="JetBrains Mono" font-size="9" fill="#9aa3b8" text-anchor="middle">16 frames @ 960×448</text>`;
+
+  // Arrow to tokenizer
+  html += `<path d="M250 92 L295 92" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr)" fill="none"/>`;
+
+  // Tokenizer
+  html += `<rect x="300" y="70" width="78" height="44" rx="6" fill="#111729" stroke="#2a3554"/>`;
+  html += `<text x="339" y="89" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#ecedf2">ViT</text>`;
+  html += `<text x="339" y="103" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6a7591">tokenizer</text>`;
+
+  // Arrow to IDM/FDM
+  html += `<path d="M380 92 L425 92" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr)" fill="none"/>`;
+
+  // IDM
+  html += `<rect x="430" y="55" width="100" height="38" rx="6" fill="#111729" stroke="#2bf7b3"/>`;
+  html += `<text x="480" y="71" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#2bf7b3">Inverse Dynamics</text>`;
+  html += `<text x="480" y="83" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6a7591">→ a_1 .. a_{T-1}</text>`;
+
+  // FDM
+  html += `<rect x="430" y="105" width="100" height="38" rx="6" fill="#111729" stroke="#2a3554"/>`;
+  html += `<text x="480" y="121" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#ecedf2">Forward Dynamics</text>`;
+  html += `<text x="480" y="133" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6a7591">predicts next frame</text>`;
+
+  // IDM → FDM
+  html += `<path d="M480 93 L480 105" stroke="#2bf7b3" stroke-width="1" marker-end="url(#aarrg)" fill="none"/>`;
+
+  // Loss
+  html += `<rect x="560" y="105" width="86" height="38" rx="6" fill="#0d1220" stroke="#2a3554"/>`;
+  html += `<text x="603" y="125" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#ffc15c">VQ-VAE loss</text>`;
+  html += `<text x="603" y="137" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#6a7591">cross-entropy</text>`;
+  html += `<path d="M530 124 L560 124" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr)" fill="none"/>`;
+
+  // Output: latent actions
+  html += `<g transform="translate(670, 60)">
+    <text x="0" y="0" font-family="JetBrains Mono" font-size="8" fill="#2bf7b3" letter-spacing="1">LATENT</text>
+    <text x="0" y="11" font-family="JetBrains Mono" font-size="8" fill="#2bf7b3" letter-spacing="1">ACTIONS</text>
+    <rect x="0" y="20" width="8" height="60" fill="rgba(43,247,179,0.25)"/>
+    <rect x="12" y="20" width="8" height="60" fill="rgba(43,247,179,0.45)"/>
+    <rect x="24" y="20" width="8" height="60" fill="rgba(43,247,179,0.65)"/>
+    <rect x="36" y="20" width="8" height="60" fill="rgba(43,247,179,0.85)"/>
+    <text x="22" y="95" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#6a7591">{a_t}</text>
+  </g>`;
+
+  // Big arrow to Stage 2
+  html += `<path d="M380 220 L380 250" stroke="#2bf7b3" stroke-width="1.5" stroke-dasharray="4 4" class="flow-arrow"/>`;
+  html += `<text x="395" y="240" font-family="JetBrains Mono" font-size="9" fill="#2bf7b3">freeze backbone, train head</text>`;
+
+  // Stage 2 box
+  html += `<rect x="20" y="250" width="${W - 40}" height="190" rx="12" fill="rgba(255, 193, 92, 0.03)" stroke="rgba(255, 193, 92, 0.2)" stroke-dasharray="4 4"/>`;
+  html += `<text x="40" y="275" font-family="JetBrains Mono" font-size="10" fill="#ffc15c" letter-spacing="2">STAGE 2 · SUPERVISED POST-TRAINING (2 300 LABELLED SCENES)</text>`;
+
+  // Frozen IDM
+  html += `<rect x="50" y="300" width="120" height="44" rx="6" fill="#111729" stroke="#2bf7b3" stroke-width="1" stroke-dasharray="2 2"/>`;
+  html += `<text x="110" y="320" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#2bf7b3">IDM (frozen)</text>`;
+  html += `<text x="110" y="334" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6a7591">→ {a_t}</text>`;
+
+  // Arrow
+  html += `<path d="M175 322 L220 322" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr)" fill="none"/>`;
+
+  // Scale token
+  html += `<rect x="220" y="296" width="60" height="20" rx="3" fill="rgba(255, 193, 92, 0.08)" stroke="#ffc15c"/>`;
+  html += `<text x="250" y="310" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ffc15c">scale tok</text>`;
+
+  // Self-attn
+  html += `<rect x="295" y="295" width="110" height="56" rx="6" fill="#111729" stroke="#2a3554"/>`;
+  html += `<text x="350" y="318" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#ecedf2">Self-Attention</text>`;
+  html += `<text x="350" y="332" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6a7591">non-causal · 4 layers</text>`;
+
+  html += `<path d="M285 322 L295 322" stroke="#ffc15c" stroke-width="1" fill="none"/>`;
+  html += `<path d="M405 322 L440 322" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr)" fill="none"/>`;
+
+  // Outputs
+  html += `<rect x="445" y="285" width="120" height="32" rx="4" fill="#0d1220" stroke="#2bf7b3"/>`;
+  html += `<text x="505" y="300" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" font-weight="600" fill="#2bf7b3">7-D pose + FoV</text>`;
+  html += `<text x="505" y="312" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#6a7591">trans + quat + φ</text>`;
+
+  html += `<rect x="445" y="325" width="120" height="32" rx="4" fill="#0d1220" stroke="#ffc15c"/>`;
+  html += `<text x="505" y="340" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" font-weight="600" fill="#ffc15c">metric scale</text>`;
+  html += `<text x="505" y="352" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#6a7591">exp(log s)</text>`;
+
+  // L1 loss
+  html += `<rect x="595" y="305" width="100" height="32" rx="4" fill="#0d1220" stroke="#ff7a8a"/>`;
+  html += `<text x="645" y="325" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#ff7a8a">L1 losses</text>`;
+  html += `<path d="M565 320 L595 320" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr)" fill="none"/>`;
+
+  // Final caption
+  html += `<text x="${W/2}" y="410" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" fill="#9aa3b8" font-style="italic">
+    Inference: video frames → tokenizer → IDM → pose head → 7-DoF + scale  (single forward pass)
+  </text>`;
+
+  svg.innerHTML = html;
+})();
+
+/* ---------------- STEPPER WIDGET ---------------- */
+(function() {
+  const svg = document.getElementById('stepSvg');
+  const desc = document.getElementById('stepDescription');
+  const btns = document.querySelectorAll('.step-btn');
+  if (!svg) return;
+
+  const steps = [
+    {
+      title: 'Step 1 · Collect & shard the data',
+      desc: 'Hoover up unlabeled driving clips. The paper uses 10.2 M short snippets from a Wayve fleet plus online sources. Shard into TAR files for streaming.',
+      draw: () => {
+        let h = '';
+        for (let i = 0; i < 12; i++) {
+          const x = 30 + (i % 6) * 90;
+          const y = 50 + Math.floor(i / 6) * 80;
+          h += `<rect x="${x}" y="${y}" width="80" height="60" rx="4" fill="#0d1220" stroke="#1b2238"/>`;
+          h += `<rect x="${x + 6}" y="${y + 6}" width="68" height="40" fill="#1b2238"/>`;
+          h += `<text x="${x + 40}" y="${y + 56}" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6a7591">clip_${(i+1).toString().padStart(3, '0')}</text>`;
+        }
+        h += `<text x="300" y="225" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="13" fill="#2bf7b3">10.2 M unlabeled clips</text>`;
+        return h;
+      }
+    },
+    {
+      title: 'Step 2 · Tokenize each frame',
+      desc: 'A 12-layer Vision Transformer turns each 960×448 frame into a 15×7 grid of 1536-D patch tokens. This step learns to compress appearance, not motion.',
+      draw: () => {
+        let h = '';
+        h += `<rect x="50" y="80" width="100" height="80" rx="4" fill="#1b2238" stroke="#2a3554"/>`;
+        h += `<text x="100" y="74" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#9aa3b8">frame X_t</text>`;
+        h += `<path d="M155 120 L210 120" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr2)"/>`;
+        h += `<rect x="215" y="100" width="80" height="40" rx="4" fill="#111729" stroke="#2a3554"/>`;
+        h += `<text x="255" y="124" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#ecedf2">ViT</text>`;
+        h += `<path d="M295 120 L350 120" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr2)"/>`;
+        // Grid of tokens
+        for (let r = 0; r < 7; r++) for (let c = 0; c < 15; c++) {
+          h += `<rect x="${355 + c * 11}" y="${80 + r * 10}" width="9" height="8" fill="rgba(43, 247, 179, ${0.2 + (r+c) * 0.02})"/>`;
+        }
+        h += `<text x="437" y="170" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#6a7591">15×7 tokens, dim=1536</text>`;
+        h += `<defs><marker id="aarr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa3b8"/></marker></defs>`;
+        return h;
+      }
+    },
+    {
+      title: 'Step 3 · Run the inverse-dynamics model',
+      desc: 'Learnable query tokens, one per frame transition, slide through the ST-Transformer with causal masking. Each query absorbs the change between frames into a latent action a_t.',
+      draw: () => {
+        let h = '';
+        h += `<defs><marker id="aarr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2bf7b3"/></marker></defs>`;
+        // Frames row
+        for (let i = 0; i < 4; i++) {
+          const x = 40 + i * 60;
+          h += `<rect x="${x}" y="40" width="40" height="30" rx="3" fill="#1b2238" stroke="#2a3554"/>`;
+          h += `<text x="${x + 20}" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#9aa3b8">X${i+1}</text>`;
+        }
+        // Query tokens
+        for (let i = 0; i < 3; i++) {
+          const x = 70 + i * 60;
+          h += `<rect x="${x}" y="100" width="30" height="20" rx="10" fill="rgba(43, 247, 179, 0.15)" stroke="#2bf7b3"/>`;
+          h += `<text x="${x + 15}" y="114" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#2bf7b3">q${i+1}</text>`;
+        }
+        // ST-Transformer box
+        h += `<rect x="320" y="35" width="180" height="100" rx="8" fill="#0d1220" stroke="#2a3554"/>`;
+        h += `<text x="410" y="80" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#ecedf2">ST-Transformer</text>`;
+        h += `<text x="410" y="96" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6a7591">causal · self-attn</text>`;
+        h += `<path d="M290 80 L320 80" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr3)"/>`;
+        // Output actions
+        for (let i = 0; i < 3; i++) {
+          const x = 530 + i * 30;
+          h += `<rect x="${x}" y="60" width="25" height="50" rx="3" fill="rgba(43, 247, 179, ${0.3 + i*0.2})"/>`;
+          h += `<text x="${x + 12}" y="125" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#2bf7b3">a${i+1}</text>`;
+        }
+        h += `<path d="M500 80 L530 80" stroke="#2bf7b3" stroke-width="1" marker-end="url(#aarr3)"/>`;
+        h += `<text x="300" y="180" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="13" fill="#2bf7b3">Each query token becomes a latent action.</text>`;
+        return h;
+      }
+    },
+    {
+      title: 'Step 4 · Forward dynamics & VQ-VAE loss',
+      desc: 'The forward model uses the latent actions and past tokens to predict the NEXT frame — not as pixels, but as discrete VQ-VAE codes. Cross-entropy loss flows back through the whole network.',
+      draw: () => {
+        let h = '';
+        h += `<defs><marker id="aarr4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa3b8"/></marker></defs>`;
+        // Past tokens
+        h += `<rect x="20" y="60" width="60" height="40" rx="4" fill="#1b2238"/>`;
+        h += `<text x="50" y="84" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#9aa3b8">tokens s_t</text>`;
+        // Latent action
+        h += `<rect x="20" y="120" width="60" height="30" rx="14" fill="rgba(43, 247, 179, 0.2)" stroke="#2bf7b3"/>`;
+        h += `<text x="50" y="140" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#2bf7b3">a_t</text>`;
+        // FDM
+        h += `<rect x="130" y="80" width="110" height="60" rx="8" fill="#0d1220" stroke="#2a3554"/>`;
+        h += `<text x="185" y="108" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#ecedf2">Forward</text>`;
+        h += `<text x="185" y="124" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#ecedf2">Dynamics</text>`;
+        h += `<path d="M82 80 L130 95" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr4)"/>`;
+        h += `<path d="M82 135 L130 120" stroke="#2bf7b3" stroke-width="1" marker-end="url(#aarr4)"/>`;
+        // Predicted codes
+        h += `<rect x="280" y="80" width="100" height="60" rx="4" fill="#1b2238"/>`;
+        for (let i = 0; i < 6; i++) for (let j = 0; j < 3; j++) {
+          h += `<rect x="${288 + i*14}" y="${88 + j*16}" width="10" height="12" fill="rgba(255,193,92,${0.2 + (i+j)*0.05})"/>`;
+        }
+        h += `<text x="330" y="160" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#ffc15c">predicted codes</text>`;
+        h += `<path d="M240 110 L280 110" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr4)"/>`;
+        // GT codes
+        h += `<rect x="450" y="80" width="100" height="60" rx="4" fill="#1b2238"/>`;
+        for (let i = 0; i < 6; i++) for (let j = 0; j < 3; j++) {
+          h += `<rect x="${458 + i*14}" y="${88 + j*16}" width="10" height="12" fill="rgba(255,122,138,${0.2 + (i+j)*0.05})"/>`;
+        }
+        h += `<text x="500" y="160" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#ff7a8a">true codes (X_{t+1})</text>`;
+        // Loss arrow
+        h += `<path d="M390 110 Q420 60 450 110" stroke="#ff7a8a" stroke-width="1.4" fill="none" marker-end="url(#aarr4)"/>`;
+        h += `<text x="420" y="50" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#ff7a8a">CE loss ↻</text>`;
+        h += `<text x="300" y="200" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="13" fill="#9aa3b8">Self-supervised — never sees a pose label.</text>`;
+        return h;
+      }
+    },
+    {
+      title: 'Step 5 · Attach the pose head (post-training)',
+      desc: 'Freeze the IDM. A small self-attention head reads the latent actions + a learnable scale token and outputs 7-DoF pose, field-of-view, and metric scale. Train with L1 loss on ~2 300 labelled scenes.',
+      draw: () => {
+        let h = '';
+        h += `<defs><marker id="aarr5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa3b8"/></marker></defs>`;
+        // Frozen IDM
+        h += `<rect x="20" y="80" width="110" height="60" rx="6" fill="#0d1220" stroke="#2bf7b3" stroke-dasharray="3 3"/>`;
+        h += `<text x="75" y="106" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#2bf7b3">IDM</text>`;
+        h += `<text x="75" y="122" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6a7591">frozen ❄</text>`;
+        // Latents
+        for (let i = 0; i < 4; i++) {
+          h += `<rect x="${145 + i * 14}" y="100" width="10" height="22" fill="rgba(43, 247, 179, ${0.4 + i*0.1})"/>`;
+        }
+        h += `<rect x="200" y="100" width="14" height="22" fill="rgba(255, 193, 92, 0.6)"/>`;
+        h += `<text x="208" y="138" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ffc15c">scale</text>`;
+        // Pose head
+        h += `<rect x="240" y="75" width="120" height="70" rx="8" fill="#0d1220" stroke="#ffc15c"/>`;
+        h += `<text x="300" y="105" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#ecedf2">Pose Head</text>`;
+        h += `<text x="300" y="120" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#ffc15c">trains 🔥</text>`;
+        h += `<text x="300" y="132" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#6a7591">4 self-attn layers</text>`;
+        h += `<path d="M214 110 L240 110" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr5)"/>`;
+        // Outputs
+        h += `<rect x="380" y="70" width="90" height="22" rx="3" fill="#1b2238"/>`;
+        h += `<text x="425" y="85" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#2bf7b3">translation (3)</text>`;
+        h += `<rect x="380" y="96" width="90" height="22" rx="3" fill="#1b2238"/>`;
+        h += `<text x="425" y="111" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#2bf7b3">quaternion (4)</text>`;
+        h += `<rect x="380" y="122" width="90" height="22" rx="3" fill="#1b2238"/>`;
+        h += `<text x="425" y="137" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#ffc15c">FoV + scale (2)</text>`;
+        h += `<path d="M360 110 L380 110" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr5)"/>`;
+        // Loss
+        h += `<rect x="490" y="95" width="100" height="32" rx="4" fill="#0d1220" stroke="#ff7a8a"/>`;
+        h += `<text x="540" y="115" text-anchor="middle" font-family="Manrope, sans-serif" font-size="11" font-weight="600" fill="#ff7a8a">L1 vs GT</text>`;
+        h += `<path d="M470 110 L490 110" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr5)"/>`;
+        h += `<text x="300" y="205" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="13" fill="#9aa3b8">Tiny supervised stage on top of huge unsupervised stage.</text>`;
+        return h;
+      }
+    },
+    {
+      title: 'Step 6 · Inference on a new video',
+      desc: 'At test time, feed a 16-frame clip through the tokenizer → IDM → pose head. Out comes a sequence of relative camera poses with metric scale. One forward pass — no optimisation.',
+      draw: () => {
+        let h = '';
+        h += `<defs><marker id="aarr6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa3b8"/></marker></defs>`;
+        // Frames
+        for (let i = 0; i < 4; i++) {
+          h += `<rect x="${20 + i*30}" y="50" width="22" height="14" rx="2" fill="#1b2238" stroke="#2a3554"/>`;
+        }
+        h += `<text x="60" y="44" text-anchor="middle" font-family="JetBrains Mono" font-size="8" fill="#9aa3b8">video</text>`;
+        // Pipeline
+        h += `<rect x="155" y="42" width="70" height="30" rx="4" fill="#0d1220" stroke="#2a3554"/>`;
+        h += `<text x="190" y="62" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#ecedf2">tokenize</text>`;
+        h += `<rect x="245" y="42" width="60" height="30" rx="4" fill="#0d1220" stroke="#2bf7b3"/>`;
+        h += `<text x="275" y="62" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#2bf7b3">IDM</text>`;
+        h += `<rect x="325" y="42" width="80" height="30" rx="4" fill="#0d1220" stroke="#ffc15c"/>`;
+        h += `<text x="365" y="62" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#ffc15c">pose head</text>`;
+        h += `<path d="M115 57 L155 57" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr6)"/>`;
+        h += `<path d="M225 57 L245 57" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr6)"/>`;
+        h += `<path d="M305 57 L325 57" stroke="#9aa3b8" stroke-width="1" marker-end="url(#aarr6)"/>`;
+        // Trajectory
+        h += `<path d="M50 170 Q150 100 250 160 T540 130" stroke="#2bf7b3" stroke-width="2" fill="none"/>`;
+        // Frustums along trajectory
+        const pts = [{x:50,y:170,r:0}, {x:170,y:130,r:30}, {x:300,y:155,r:-10}, {x:430,y:130,r:20}, {x:540,y:130,r:5}];
+        pts.forEach(p => {
+          h += `<g transform="translate(${p.x} ${p.y}) rotate(${p.r})">
+            <path d="M0 0 L-8 -14 L8 -14 Z" fill="rgba(43,247,179,0.2)" stroke="#2bf7b3" stroke-width="1"/>
+            <circle cx="0" cy="0" r="3" fill="#2bf7b3"/>
+          </g>`;
+        });
+        h += `<text x="425" y="62" font-family="JetBrains Mono" font-size="9" fill="#6a7591"></text>`;
+        h += `<path d="M365 78 L300 110" stroke="#9aa3b8" stroke-width="1" stroke-dasharray="2 2"/>`;
+        h += `<text x="300" y="215" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="13" fill="#9aa3b8">Output: a smooth 6-DoF camera trajectory.</text>`;
+        return h;
+      }
+    },
+  ];
+
+  function show(i) {
+    btns.forEach((b, j) => b.classList.toggle('active', j === i));
+    svg.innerHTML = steps[i].draw();
+    desc.innerHTML = `<strong style="color: var(--text); font-family: var(--serif); font-size: 1.05rem; font-weight: 500;">${steps[i].title}</strong><br>${steps[i].desc}`;
+  }
+  btns.forEach((b, i) => b.addEventListener('click', () => show(i)));
+  show(0);
+})();
+
+/* ---------------- T-SNE LATENT VIZ ---------------- */
+(function() {
+  const canvas = document.getElementById('tsneCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let mode = 'speed';
+  let points = [];
+  let W, H;
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    W = canvas.offsetWidth;
+    H = canvas.offsetHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.scale(dpr, dpr);
+  }
+
+  function generatePoints() {
+    points = [];
+    // Cluster 1: fast straight forward (top right)
+    for (let i = 0; i < 180; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.random() * 50;
+      points.push({
+        x: 0.72 + Math.cos(a) * r / 600 + (Math.random() - 0.5) * 0.06,
+        y: 0.28 + Math.sin(a) * r / 400 + (Math.random() - 0.5) * 0.06,
+        speed: 0.85 + Math.random() * 0.15,
+        yaw: -0.1 + Math.random() * 0.2,
+        cluster: 0
+      });
+    }
+    // Cluster 2: medium speed straight (center)
+    for (let i = 0; i < 220; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.random() * 60;
+      points.push({
+        x: 0.48 + Math.cos(a) * r / 500 + (Math.random() - 0.5) * 0.06,
+        y: 0.48 + Math.sin(a) * r / 400 + (Math.random() - 0.5) * 0.06,
+        speed: 0.4 + Math.random() * 0.3,
+        yaw: -0.05 + Math.random() * 0.1,
+        cluster: 1
+      });
+    }
+    // Cluster 3: slow / stopped (bottom left)
+    for (let i = 0; i < 120; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.random() * 35;
+      points.push({
+        x: 0.22 + Math.cos(a) * r / 500 + (Math.random() - 0.5) * 0.04,
+        y: 0.72 + Math.sin(a) * r / 400 + (Math.random() - 0.5) * 0.04,
+        speed: Math.random() * 0.2,
+        yaw: -0.03 + Math.random() * 0.06,
+        cluster: 2
+      });
+    }
+    // Cluster 4: sharp left turn (top left)
+    for (let i = 0; i < 110; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.random() * 40;
+      points.push({
+        x: 0.22 + Math.cos(a) * r / 500 + (Math.random() - 0.5) * 0.05,
+        y: 0.22 + Math.sin(a) * r / 400 + (Math.random() - 0.5) * 0.05,
+        speed: 0.3 + Math.random() * 0.3,
+        yaw: -0.8 + Math.random() * 0.25,
+        cluster: 3
+      });
+    }
+    // Cluster 5: sharp right turn (bottom right)
+    for (let i = 0; i < 110; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.random() * 40;
+      points.push({
+        x: 0.72 + Math.cos(a) * r / 500 + (Math.random() - 0.5) * 0.05,
+        y: 0.72 + Math.sin(a) * r / 400 + (Math.random() - 0.5) * 0.05,
+        speed: 0.3 + Math.random() * 0.3,
+        yaw: 0.5 + Math.random() * 0.3,
+        cluster: 4
+      });
+    }
+  }
+
+  function colorFor(p) {
+    if (mode === 'speed') {
+      // green = fast, indigo = slow
+      const t = p.speed;
+      const r = Math.round(43 + (138 - 43) * (1 - t));
+      const g = Math.round(247 + (139 - 247) * (1 - t));
+      const b = Math.round(179 + (255 - 179) * (1 - t));
+      return `rgb(${r},${g},${b})`;
+    }
+    if (mode === 'yaw') {
+      // magenta = right turn, cyan = left turn, gray = straight
+      const t = p.yaw;
+      if (t < -0.3) return '#4dd6f6';
+      if (t > 0.3) return '#f178c9';
+      return '#6a7591';
+    }
+    // cluster mode
+    const palette = ['#2bf7b3', '#4dd6f6', '#8a8bff', '#f178c9', '#ffc15c'];
+    return palette[p.cluster];
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    // background light grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 10; i++) {
+      ctx.beginPath();
+      ctx.moveTo(W * i / 10, 0);
+      ctx.lineTo(W * i / 10, H);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, H * i / 10);
+      ctx.lineTo(W, H * i / 10);
+      ctx.stroke();
+    }
+    points.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x * W, p.y * H, 2.4, 0, Math.PI * 2);
+      ctx.fillStyle = colorFor(p);
+      ctx.globalAlpha = 0.75;
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // Cluster labels in cluster mode
+    if (mode === 'cluster') {
+      const labels = [
+        {x: 0.72, y: 0.18, text: 'fast forward', color: '#2bf7b3'},
+        {x: 0.48, y: 0.38, text: 'medium', color: '#4dd6f6'},
+        {x: 0.22, y: 0.82, text: 'stopped', color: '#8a8bff'},
+        {x: 0.22, y: 0.12, text: 'sharp left', color: '#f178c9'},
+        {x: 0.72, y: 0.82, text: 'sharp right', color: '#ffc15c'},
+      ];
+      labels.forEach(l => {
+        ctx.fillStyle = l.color;
+        ctx.font = '12px JetBrains Mono';
+        ctx.textAlign = 'center';
+        ctx.fillText(l.text, l.x * W, l.y * H);
+      });
+    }
+    // t-SNE axis labels
+    ctx.fillStyle = '#6a7591';
+    ctx.font = '10px JetBrains Mono';
+    ctx.textAlign = 'left';
+    ctx.fillText('t-SNE 1', 10, H - 8);
+    ctx.fillText('t-SNE 2', 10, 18);
+  }
+
+  resize();
+  generatePoints();
+  draw();
+  window.addEventListener('resize', () => { resize(); draw(); });
+
+  document.querySelectorAll('.tsne-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tsne-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.mode;
+      draw();
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
