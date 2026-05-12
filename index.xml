@@ -6,7 +6,19 @@
     <description>Recent content in Home on My Personal Website</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 15 Feb 2026 12:00:00 -0500</lastBuildDate><atom:link href="https://mishra39.github.io/website/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 12 May 2026 12:00:00 -0500</lastBuildDate><atom:link href="https://mishra39.github.io/website/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LA-Pose: Learning Camera Motion from Unlabeled Driving Video</title>
+      <link>https://mishra39.github.io/website/posts/la-pose-tutorial/</link>
+      <pubDate>Tue, 12 May 2026 12:00:00 -0500</pubDate>
+      
+      <guid>https://mishra39.github.io/website/posts/la-pose-tutorial/</guid>
+      
+      <description>An interactive deep-dive into LA-Pose — a method for learning camera motion (ego-pose estimation) from unlabeled driving video using self-supervised learning. Covers the architecture, loss formulation, and key implementation details with interactive visualizations.
+Open Full Tutorial</description>
+      
+    </item>
+    
     <item>
       <title>DDPM--Key Implementation Details &amp; Takeaways</title>
       <link>https://mishra39.github.io/website/posts/ddpm/</link>
