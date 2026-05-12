@@ -4,10 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>LA-Pose — Learning Camera Motion from Unlabeled Driving Video</title>
+
 <!-- Fonts: editorial serif + clean sans + technical mono -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Manrope:wght@200..800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
 <!-- MathJax for math rendering -->
 <script>
   MathJax = {
@@ -16,11 +18,13 @@
   };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" defer></script>
+
 <!-- Prism for syntax highlighting -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js" defer></script>
+
 <style>
   /* ---------- DESIGN TOKENS ---------- */
   :root {
@@ -628,6 +632,7 @@
 </style>
 </head>
 <body>
+
 <!-- ==================== TOP NAV ==================== -->
 <nav class="topnav">
   <div class="topnav-inner">
@@ -645,6 +650,7 @@
     </div>
   </div>
 </nav>
+
 <!-- ==================== HERO ==================== -->
 <section class="hero">
   <canvas id="hero-canvas"></canvas>
@@ -670,30 +676,32 @@
       Matthew Brown, Yasutaka Furukawa</strong> · Wayve & Simon Fraser University
       · A walk-through built for engineers, ML practitioners, and the merely curious.
     </p>
-<pre><code>&lt;div class=&quot;hero-cards&quot;&gt;
-  &lt;div class=&quot;hero-card fade-in d1&quot;&gt;
-    &lt;div class=&quot;hero-card-num&quot;&gt;10.2 M&lt;/div&gt;
-    &lt;div class=&quot;hero-card-label&quot;&gt;unlabeled driving video clips for pretraining&lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;hero-card fade-in d2&quot;&gt;
-    &lt;div class=&quot;hero-card-num&quot;&gt;91.4 %&lt;/div&gt;
-    &lt;div class=&quot;hero-card-label&quot;&gt;AUC@5° on Waymo — over 10 % above prior feed-forward methods&lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;hero-card fade-in d3&quot;&gt;
-    &lt;div class=&quot;hero-card-num&quot;&gt;86.3 %&lt;/div&gt;
-    &lt;div class=&quot;hero-card-label&quot;&gt;zero-shot on PandaSet, an unseen benchmark&lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;hero-card fade-in d4&quot;&gt;
-    &lt;div class=&quot;hero-card-num&quot;&gt;4 days&lt;/div&gt;
-    &lt;div class=&quot;hero-card-label&quot;&gt;to pre-train on 32 H100s · cheaper than competing methods&lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-</code></pre>
+
+    <div class="hero-cards">
+      <div class="hero-card fade-in d1">
+        <div class="hero-card-num">10.2 M</div>
+        <div class="hero-card-label">unlabeled driving video clips for pretraining</div>
+      </div>
+      <div class="hero-card fade-in d2">
+        <div class="hero-card-num">91.4 %</div>
+        <div class="hero-card-label">AUC@5° on Waymo — over 10 % above prior feed-forward methods</div>
+      </div>
+      <div class="hero-card fade-in d3">
+        <div class="hero-card-num">86.3 %</div>
+        <div class="hero-card-label">zero-shot on PandaSet, an unseen benchmark</div>
+      </div>
+      <div class="hero-card fade-in d4">
+        <div class="hero-card-num">4 days</div>
+        <div class="hero-card-label">to pre-train on 32 H100s · cheaper than competing methods</div>
+      </div>
+    </div>
   </div>
   <div class="scroll-hint">↓ scroll to begin</div>
 </section>
+
 <!-- ==================== MAIN LAYOUT ==================== -->
 <div class="layout">
+
 <!-- ----- TOC ----- -->
 <aside class="toc">
   <div class="toc-title">Contents</div>
@@ -717,23 +725,29 @@
   <a href="#apply">11 · Apply it yourself</a>
   <a href="#further">12 · Further reading</a>
 </aside>
+
 <!-- ----- MAIN ----- -->
 <main>
+
 <!-- ==================== 01 — INTUITION ==================== -->
 <section class="chapter" id="intuition">
   <div class="chapter-num">01 — THE BIG PICTURE</div>
   <h2>A car, a camera, and a question</h2>
+
   <p>
     Imagine you're sitting in the back of a car. A dash camera is filming the road. Every quarter-second,
     a new frame appears. The view drifts left, leans into a curve, accelerates. Now somebody asks you
     a question that sounds simple:
   </p>
+
   <blockquote>"How exactly did the camera move between these two frames?"</blockquote>
+
   <p>
     You'd need to answer in numbers: how many metres forward, how many degrees of turn, how much pitch,
     how much yaw. That answer is called the <em>camera pose</em>. It's the bedrock under almost every 3D
     computer-vision task — from SLAM to NeRFs to autonomous driving stacks.
   </p>
+
   <p>
     For decades, getting it right has been expensive. You needed a LiDAR fleet, hours of calibration,
     and people meticulously hand-labelling millions of frames. <strong>LA-Pose asks a different
@@ -741,6 +755,7 @@
     about <em>motion</em> just by watching, so that we only need a handful of labelled examples to
     finish the job?
   </p>
+
   <div class="callout">
     <div class="callout-label">The one-sentence version</div>
     <p>
@@ -748,20 +763,24 @@
       between two frames," then teach a tiny head to translate that code into a metric 3D pose.
     </p>
   </div>
+
   <p>
     The answer is yes — surprisingly so. On standard driving benchmarks LA-Pose beats methods that
     were trained on far more labelled data, and it does so with a single feed-forward pass through a
     transformer. No bundle adjustment. No iterative optimisation. No LiDAR.
   </p>
 </section>
+
 <!-- ==================== 02 — WHY HARD ==================== -->
 <section class="chapter" id="why-hard">
   <div class="chapter-num">02 — WHY THIS IS HARD</div>
   <h2>What breaks in the traditional pipeline</h2>
+
   <p>
     Before we appreciate the solution, it helps to feel the problem. Camera pose estimation
     historically has three "tribes," each with painful trade-offs.
   </p>
+
   <div class="cards">
     <div class="card">
       <div class="card-title">SfM / SLAM</div>
@@ -787,16 +806,19 @@
       </div>
     </div>
   </div>
+
   <p>
     Notice what's missing from this list: <em>scale</em>. The big leaps in language models came from
     consuming the entire internet without labels. The big leaps in vision came from DINO, JEPA, MAE —
     again, training without labels. But for <strong>geometric</strong> tasks like pose, the field
     largely stuck with supervised data.
   </p>
+
   <p>
     LA-Pose's bet is that the same self-supervised playbook that worked for language and image
     semantics will also work for <em>motion</em>. The trick is finding the right pretext task.
   </p>
+
   <div class="callout think">
     <div class="callout-label">Pause and think</div>
     <p>
@@ -806,31 +828,38 @@
     </p>
   </div>
 </section>
+
 <!-- ==================== 03 — PRIMER ==================== -->
 <section class="chapter" id="primer">
   <div class="chapter-num">03 — A GENTLE PRIMER</div>
   <h2>Five ideas you'll need first</h2>
+
   <p>
     LA-Pose sits at the intersection of geometry, self-supervised learning, and world-modelling.
     If you're new to any of those, this section is for you. We'll build each idea from scratch — feel
     free to skim what you already know.
   </p>
+
   <!-- ---------- 3a CAMERA POSE ---------- -->
   <h3 id="camera-pose">3.1 · What is a camera pose, really?</h3>
+
   <p>
     Pick any frame from a video. The pixels you see depend on two things: <strong>where the camera
     is</strong> and <strong>which way it's pointing</strong>. Together, those two pieces of
     information are the <em>pose</em>.
   </p>
+
   <p>
     Mathematically, "where" is a 3-dimensional <em>translation</em> $\mathbf{t} \in \mathbb{R}^3$, and
     "which way" is a 3-dimensional <em>rotation</em>. The pair $(R, \mathbf{t})$ is a rigid-body
     transformation — six numbers in total, often called <strong>6-DoF pose</strong>.
   </p>
+
   <p>
     Drag the sliders below to move and turn a tiny virtual camera. The grey grid is the world. The
     coloured frustum is what the camera sees.
   </p>
+
   <!-- Interactive camera widget -->
   <div class="widget">
     <div class="widget-title">Interactive · 6-DoF camera pose</div>
@@ -863,8 +892,10 @@
       means recovering both — to scale.
     </p>
   </div>
+
   <!-- ---------- 3b SE(3) ---------- -->
   <h3 id="se3">3.2 · The language of rigid motion: SE(3) and quaternions</h3>
+
   <p>
     A rotation in 3D is awkward. The naive way — three angles (roll, pitch, yaw) — has nasty edge
     cases called <em>gimbal lock</em>. A cleaner representation is the <strong>rotation matrix</strong>
@@ -872,17 +903,21 @@
     1$). The most compact, well-behaved choice for neural networks is the <strong>quaternion</strong> —
     just four numbers, $q = (w, x, y, z)$, that live on the unit 3-sphere.
   </p>
+
   <p>
     Together, a rotation and a translation form an element of the <em>special Euclidean group</em>
     $\mathrm{SE}(3)$:
   </p>
-<p>$$T = \begin{bmatrix} R &amp; \mathbf{t} \ \mathbf{0}^\top &amp; 1 \end{bmatrix} \in \mathrm{SE}(3)$$</p>
+
+  $$T = \begin{bmatrix} R & \mathbf{t} \\ \mathbf{0}^\top & 1 \end{bmatrix} \in \mathrm{SE}(3)$$
+
   <p>
     Don't be intimidated by the notation. $\mathrm{SE}(3)$ is just the set of all "things you can do
     to a rigid object without squashing or shearing it" — moves, turns, and combinations. Every
     camera-pose paper, including LA-Pose, ultimately produces a sequence of $\mathrm{SE}(3)$
     elements describing the camera's journey.
   </p>
+
   <div class="callout">
     <div class="callout-label">LA-Pose's pose representation</div>
     <p>
@@ -892,14 +927,18 @@
       capture the same SE(3) geometry as the 16-number matrix above, with no degenerate corner cases.
     </p>
   </div>
+
   <!-- ---------- 3c SSL ---------- -->
   <h3 id="ssl">3.3 · Self-supervised learning, in one minute</h3>
+
   <p>
     The supervised playbook is "show the model an input, tell it the right answer, repeat." That
     works — but labels are expensive. Self-supervised learning (SSL) sidesteps the labels by inventing
     a <em>pretext task</em> the model can solve using the data alone.
   </p>
+
   <p>The two SSL ideas you should know:</p>
+
   <div class="cards">
     <div class="card">
       <div class="card-title">Masked prediction</div>
@@ -917,28 +956,34 @@
       </div>
     </div>
   </div>
+
   <p>
     LA-Pose uses the second flavour: <strong>predict the next frame</strong>. The catch is the model
     is given only the past frames — never a label. So how can it possibly predict the future?
   </p>
+
   <!-- ---------- 3d LATENT ACTIONS ---------- -->
   <h3 id="latent">3.4 · Latent actions: the missing variable</h3>
+
   <p>
     Watch frame 1 of a driving clip. The car is in lane. Watch frame 2. The car has nudged left. To
     bridge frame 1 → frame 2 with any model, you need to know <em>what action happened</em> — but the
     raw video doesn't include the steering-wheel input. There's a missing variable.
   </p>
+
   <p>
     A clever trick: <strong>let the model invent its own action variable.</strong> Put a tiny bottleneck
     between two frames and force the model to summarise the change into a short code $\mathbf{a}$. Then
     use that code to predict frame 2 from frame 1. The model must compress the entire change — turn,
     speed, lane shift — into $\mathbf{a}$, or it'll fail to reconstruct.
   </p>
+
   <p>
     That short code $\mathbf{a}$ is the <em>latent action</em>. It's not human-readable. But — and
     this is the whole point — it captures motion-relevant information almost surgically, because
     appearance details that didn't change between frames don't need to be in $\mathbf{a}$.
   </p>
+
   <!-- Latent action visualiser -->
   <div class="widget">
     <div class="widget-title">Concept · How a latent action emerges</div>
@@ -951,17 +996,21 @@
       it can't store appearance — only motion.
     </p>
   </div>
+
   <p>
     This idea was crystallised by <a href="https://arxiv.org/abs/2402.15391" target="_blank"
     rel="noopener">Genie (DeepMind, 2024)</a> for interactive game-world generation. LA-Pose adopts
     the same architecture but uses the latent actions for an entirely different downstream task:
     geometric pose recovery.
   </p>
+
   <!-- ---------- 3e INVERSE DYNAMICS ---------- -->
   <h3 id="inverse-dyn">3.5 · Forward and inverse dynamics</h3>
+
   <p>
     Two dual concepts from physics and robotics:
   </p>
+
   <div class="kv-grid">
     <div class="kv">
       <div class="kv-key">Forward dynamics</div>
@@ -972,17 +1021,20 @@
       <div class="kv-val">state + next state → action</div>
     </div>
   </div>
+
   <p>
     In LA-Pose, "state" is a frame's visual tokens, and "action" is the latent code we just
     discussed. The <strong>inverse-dynamics model</strong> looks at frame $X_t$ and frame $X_{t+1}$
     and squeezes out an action $\mathbf{a}_t$. The <strong>forward-dynamics model</strong> takes
     $X_t$ and $\mathbf{a}_t$ and predicts $X_{t+1}$.
   </p>
+
   <p>
     Train them jointly. The forward model can only reconstruct $X_{t+1}$ if $\mathbf{a}_t$ contains
     real motion information. So the inverse model is forced to produce useful actions — purely by
     self-supervision.
   </p>
+
   <div class="callout">
     <div class="callout-label">Why this matters for pose</div>
     <p>
@@ -993,56 +1045,62 @@
     </p>
   </div>
 </section>
+
 <!-- ==================== 04 — ARCHITECTURE ==================== -->
 <section class="chapter" id="architecture">
   <div class="chapter-num">04 — THE LA-POSE ARCHITECTURE</div>
   <h2>Two stages, one elegant idea</h2>
+
   <p>
     LA-Pose is split into two training stages. The first is enormous, self-supervised, and patient.
     The second is tiny, supervised, and fast. Let's walk through both.
   </p>
+
   <!-- Big architecture diagram -->
-<p><svg viewBox="0 0 760 460" class="widget-canvas" style="height: 460px; padding: 12px; margin: 1.5rem 0;" id="archSvg"></svg></p>
+  <svg viewBox="0 0 760 460" class="widget-canvas" style="height: 460px; padding: 12px; margin: 1.5rem 0;" id="archSvg"></svg>
   <p style="font-size: 0.82rem; color: var(--text-mute); margin-top: -10px;">
     Figure: The two stages. Top — pretraining learns latent actions $\mathbf{a}_t$ from raw video.
     Bottom — a tiny pose head turns latent actions into 7-DoF pose + scale.
   </p>
+
   <!-- ---------- STAGE 1 ---------- -->
   <h3 id="stage1">4.1 · Stage 1 — Latent action pretraining</h3>
+
   <div class="arch-stage">
     <span class="arch-stage-label">Pre-training · 10.2 M unlabelled clips</span>
-<pre><code>&lt;h4 style=&quot;margin-top: 6px;&quot;&gt;Step A · Tokenize each frame&lt;/h4&gt;
-&lt;p&gt;
-  A sequence of &lt;strong&gt;T = 16&lt;/strong&gt; frames at $960 \times 448$ resolution is fed in. Each
-  frame is patchified into tokens by a 12-layer Vision Transformer encoder. The output for each
-  frame is a $15 \times 7 \times 1536$ tensor — that's a grid of 105 patch tokens, each a
-  1536-dimensional feature vector.
-&lt;/p&gt;
 
-&lt;h4&gt;Step B · Inverse dynamics — squeeze out the action&lt;/h4&gt;
-&lt;p&gt;
-  A spatiotemporal transformer (ST-Transformer) processes all the visual tokens &lt;em&gt;plus&lt;/em&gt; 15
-  learnable &lt;strong&gt;query tokens&lt;/strong&gt;, one per frame transition. Causal masking ensures
-  query token $\mathbf{q}_t$ can attend only up to frame $t+1$ — it sees $X_t$ and $X_{t+1}$ but
-  nothing in the future.
-&lt;/p&gt;
-&lt;p&gt;
-  Each query token emerges as a &lt;strong&gt;latent action&lt;/strong&gt; $\mathbf{a}_t \in
-  \mathbb{R}^{1536}$. The dimensionality is critical: too big, and the model cheats by encoding
-  appearance; too small, and motion info is lost. LA-Pose squeezes through a 50-dimensional
-  bottleneck (an MLP compression-decompression pair) to force the action to be motion-centric.
-&lt;/p&gt;
+    <h4 style="margin-top: 6px;">Step A · Tokenize each frame</h4>
+    <p>
+      A sequence of <strong>T = 16</strong> frames at $960 \times 448$ resolution is fed in. Each
+      frame is patchified into tokens by a 12-layer Vision Transformer encoder. The output for each
+      frame is a $15 \times 7 \times 1536$ tensor — that's a grid of 105 patch tokens, each a
+      1536-dimensional feature vector.
+    </p>
 
-&lt;h4&gt;Step C · Forward dynamics — predict the next frame&lt;/h4&gt;
-&lt;p&gt;
-  A forward-dynamics ST-Transformer takes the past visual tokens and the latent actions and
-  predicts the &lt;em&gt;next&lt;/em&gt; frame. But it doesn't predict raw pixels — that would be lossy and
-  expensive. Instead, it predicts which &lt;strong&gt;VQ-VAE codes&lt;/strong&gt; the next frame would have,
-  treating the problem as classification over a fixed visual vocabulary. The training loss is
-  cross-entropy between predicted and true codes.
-&lt;/p&gt;
-</code></pre>
+    <h4>Step B · Inverse dynamics — squeeze out the action</h4>
+    <p>
+      A spatiotemporal transformer (ST-Transformer) processes all the visual tokens <em>plus</em> 15
+      learnable <strong>query tokens</strong>, one per frame transition. Causal masking ensures
+      query token $\mathbf{q}_t$ can attend only up to frame $t+1$ — it sees $X_t$ and $X_{t+1}$ but
+      nothing in the future.
+    </p>
+    <p>
+      Each query token emerges as a <strong>latent action</strong> $\mathbf{a}_t \in
+      \mathbb{R}^{1536}$. The dimensionality is critical: too big, and the model cheats by encoding
+      appearance; too small, and motion info is lost. LA-Pose squeezes through a 50-dimensional
+      bottleneck (an MLP compression-decompression pair) to force the action to be motion-centric.
+    </p>
+
+    <h4>Step C · Forward dynamics — predict the next frame</h4>
+    <p>
+      A forward-dynamics ST-Transformer takes the past visual tokens and the latent actions and
+      predicts the <em>next</em> frame. But it doesn't predict raw pixels — that would be lossy and
+      expensive. Instead, it predicts which <strong>VQ-VAE codes</strong> the next frame would have,
+      treating the problem as classification over a fixed visual vocabulary. The training loss is
+      cross-entropy between predicted and true codes.
+    </p>
   </div>
+
   <div class="callout warn">
     <div class="callout-label">A subtle but crucial detail</div>
     <p>
@@ -1051,8 +1109,10 @@
       the model would never bother learning motion. The compression bottleneck enforces this.
     </p>
   </div>
+
   <!-- ---------- STAGE 2 ---------- -->
   <h3 id="stage2">4.2 · Stage 2 — Camera pose post-training</h3>
+
   <div class="arch-stage">
     <span class="arch-stage-label">Post-training · ~2 300 labelled scenes</span>
     <p>
@@ -1060,30 +1120,31 @@
       $\{\mathbf{a}_1, \dots, \mathbf{a}_{T-1}\}$ for any input video. Stage 2 attaches a
       <strong>tiny pose head</strong> on top.
     </p>
-<pre><code>&lt;h4&gt;The scale token trick&lt;/h4&gt;
-&lt;p&gt;
-  The pose head introduces one extra learnable token — a single 1536-D &lt;strong&gt;metric scale
-  token&lt;/strong&gt; — that's prepended to the latent actions. A non-causal self-attention transformer
-  lets the scale token absorb information from the entire sequence, then a pair of MLP heads
-  decode:
-&lt;/p&gt;
-&lt;div class=&quot;kv-grid&quot;&gt;
-  &lt;div class=&quot;kv&quot;&gt;
-    &lt;div class=&quot;kv-key&quot;&gt;From latent actions&lt;/div&gt;
-    &lt;div class=&quot;kv-val&quot;&gt;7-D pose + 1-D FoV&lt;/div&gt;
-  &lt;/div&gt;
-  &lt;div class=&quot;kv&quot;&gt;
-    &lt;div class=&quot;kv-key&quot;&gt;From scale token&lt;/div&gt;
-    &lt;div class=&quot;kv-val&quot;&gt;1-D metric scale&lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;
-&lt;p&gt;
-  The 7-D pose is 3 translation components (scale-normalised) plus a 4-D quaternion. The metric
-  scale has an exponential activation to guarantee positivity. Disentangling scale from direction
-  makes optimisation more stable — a trick borrowed from monocular geometry methods like MoGe-2.
-&lt;/p&gt;
-</code></pre>
+
+    <h4>The scale token trick</h4>
+    <p>
+      The pose head introduces one extra learnable token — a single 1536-D <strong>metric scale
+      token</strong> — that's prepended to the latent actions. A non-causal self-attention transformer
+      lets the scale token absorb information from the entire sequence, then a pair of MLP heads
+      decode:
+    </p>
+    <div class="kv-grid">
+      <div class="kv">
+        <div class="kv-key">From latent actions</div>
+        <div class="kv-val">7-D pose + 1-D FoV</div>
+      </div>
+      <div class="kv">
+        <div class="kv-key">From scale token</div>
+        <div class="kv-val">1-D metric scale</div>
+      </div>
+    </div>
+    <p>
+      The 7-D pose is 3 translation components (scale-normalised) plus a 4-D quaternion. The metric
+      scale has an exponential activation to guarantee positivity. Disentangling scale from direction
+      makes optimisation more stable — a trick borrowed from monocular geometry methods like MoGe-2.
+    </p>
   </div>
+
   <p>
     The post-training data is tiny compared to pretraining: roughly <strong>2 300 driving scenes</strong>
     from Waymo, nuScenes, and Argoverse combined, where LiDAR provides perfectly accurate poses. The
@@ -1091,34 +1152,45 @@
     pose head.
   </p>
 </section>
+
 <!-- ==================== 05 — MATH ==================== -->
 <section class="chapter" id="math">
   <div class="chapter-num">05 — THE MATH, GENTLY</div>
   <h2>Building the equations from scratch</h2>
+
   <p>
     You don't need fancy math to feel why LA-Pose works, but a few formulas are worth seeing
     explicitly. We'll derive them so each symbol earns its place.
   </p>
+
   <h3>5.1 · The inverse-dynamics objective</h3>
+
   <p>
     Given a sequence of frame tokens $s_1, s_2, \dots, s_T$, we want a function $\mathrm{IDM}$ that
     extracts an action $\mathbf{a}_t$ describing the change from $s_t$ to $s_{t+1}$:
   </p>
-<p>$$\mathbf{a}<em>t = \mathrm{IDM}(s_1, s_2, \dots, s</em>{t+1})$$</p>
+
+  $$\mathbf{a}_t = \mathrm{IDM}(s_1, s_2, \dots, s_{t+1})$$
+
   <p>
     The causal mask ensures $\mathbf{a}_t$ depends only on past and current frames — never future
     ones. Now we want a forward-dynamics function $\mathrm{FDM}$ that uses $\mathbf{a}_t$ to predict
     the next frame's discrete tokens $z_{t+1}$ (the VQ-VAE codes):
   </p>
-<p>$$\hat{z}_{t+1} = \mathrm{FDM}(s_1, \dots, s_t, \mathbf{a}_t)$$</p>
+
+  $$\hat{z}_{t+1} = \mathrm{FDM}(s_1, \dots, s_t, \mathbf{a}_t)$$
+
   <p>
     Training is straightforward cross-entropy between predicted logits and the true codebook indices:
   </p>
-<p>$$\mathcal{L}<em>{\text{pre}} = -\sum</em>{t=1}^{T-1} \sum_{k} z_{t+1}^{(k)} \log \hat{z}_{t+1}^{(k)}$$</p>
+
+  $$\mathcal{L}_{\text{pre}} = -\sum_{t=1}^{T-1} \sum_{k} z_{t+1}^{(k)} \log \hat{z}_{t+1}^{(k)}$$
+
   <p>
     where $k$ indexes over codebook tokens. Notice: no pose labels appear anywhere. The supervision
     comes entirely from the frames themselves.
   </p>
+
   <div class="callout think">
     <div class="callout-label">Why this gradient teaches geometry</div>
     <p>
@@ -1128,53 +1200,66 @@
       into the gradient.
     </p>
   </div>
+
   <h3>5.2 · The pose post-training loss</h3>
+
   <p>
     At post-training, we have ground-truth metric translations $\{\mathbf{t}_1, \dots, \mathbf{t}_T\}$
     from LiDAR. LA-Pose splits this into <em>direction</em> and <em>magnitude</em>. First, compute the
     average translation magnitude as the metric scale:
   </p>
-<p>$$s = \mathrm{mean}_i\big( | \mathbf{t}_i |_2 \big)$$</p>
+
+  $$s = \mathrm{mean}_i\big( \| \mathbf{t}_i \|_2 \big)$$
+
   <p>
     Then normalize the translations into a scale-agnostic version:
   </p>
-<p>$$\tilde{\mathbf{t}}_i = \frac{\mathbf{t}_i}{\max(s, \epsilon)}, \quad \epsilon = 1.0$$</p>
+
+  $$\tilde{\mathbf{t}}_i = \frac{\mathbf{t}_i}{\max(s, \epsilon)}, \quad \epsilon = 1.0$$
+
   <p>
     The network predicts $\hat{\tilde{\mathbf{t}}}_i$, a quaternion $\hat{q}_i$, a field-of-view
     $\hat{\phi}_i$, and a log-space scale $\widehat{\log s}$. The total post-training loss is an L1
     sum:
   </p>
-<p>$$\mathcal{L}_{\text{post}} = \lambda_t | \tilde{\mathbf{t}} - \hat{\tilde{\mathbf{t}}} |_1</p>
-<ul>
-<li>\lambda_q | q - \hat{q} |<em>1 + \lambda</em>\phi | \phi - \hat{\phi} |_1</li>
-<li>\lambda_s | \log s - \widehat{\log s} |_1$$</li>
-</ul>
+
+  $$\mathcal{L}_{\text{post}} = \lambda_t \| \tilde{\mathbf{t}} - \hat{\tilde{\mathbf{t}}} \|_1
+  + \lambda_q \| q - \hat{q} \|_1 + \lambda_\phi \| \phi - \hat{\phi} \|_1
+  + \lambda_s \| \log s - \widehat{\log s} \|_1$$
+
   <p>
     Predicting $\log s$ rather than $s$ keeps gradients well-behaved across many orders of magnitude
     of motion (a parked car vs. a highway sprint).
   </p>
+
   <h3>5.3 · The metric AUC@5°</h3>
+
   <p>
     The headline metric for camera pose is <strong>AUC@5°</strong> — the area under the cumulative
     error curve up to a 5-degree threshold. For each pair of frames in a test sequence, compute the
     angular error in rotation and translation:
   </p>
-<p>$$e_{ij} = \max\Big( \angle(R_i^{-1} R_j, \hat{R}<em>i^{-1} \hat{R}<em>j),<br>
-\angle(\mathbf{t}</em>{ij}, \hat{\mathbf{t}}</em>{ij}) \Big)$$</p>
+
+  $$e_{ij} = \max\Big( \angle(R_i^{-1} R_j, \hat{R}_i^{-1} \hat{R}_j),\
+  \angle(\mathbf{t}_{ij}, \hat{\mathbf{t}}_{ij}) \Big)$$
+
   <p>
     Then plot the fraction of pairs with $e < \theta$ as $\theta$ sweeps from 0 to 5°. The area under
     that curve, normalised, is AUC@5. Higher is better. LA-Pose hits 91.4 % on Waymo — meaning most
     pairs are accurate to a fraction of a degree.
   </p>
 </section>
+
 <!-- ==================== 06 — TRAINING ==================== -->
 <section class="chapter" id="training">
   <div class="chapter-num">06 — TRAINING PIPELINE</div>
   <h2>From raw clips to a working model</h2>
+
   <p>
     Below is the end-to-end picture. The two stages run sequentially: pretraining for ~4 days on 32
     H100s, then post-training for ~2 days on 8 H100s. Click through the steps.
   </p>
+
   <!-- Stepper widget -->
   <div class="widget">
     <div class="widget-title">Walkthrough · The training pipeline</div>
@@ -1189,7 +1274,9 @@
     <svg viewBox="0 0 600 240" class="widget-canvas" style="height: 240px;" id="stepSvg"></svg>
     <div id="stepDescription" style="margin-top: 18px; font-size: 0.92rem; color: var(--text-dim); min-height: 70px;"></div>
   </div>
+
   <h3>Hyperparameters at a glance</h3>
+
   <div class="kv-grid">
     <div class="kv"><div class="kv-key">Frames per clip</div><div class="kv-val">16</div></div>
     <div class="kv"><div class="kv-key">Input resolution</div><div class="kv-val">960 × 448</div></div>
@@ -1202,28 +1289,34 @@
     <div class="kv"><div class="kv-key">Peak LR</div><div class="kv-val">1e-4 cosine</div></div>
     <div class="kv"><div class="kv-key">Pretrain hardware</div><div class="kv-val">32 × H100</div></div>
   </div>
+
   <h4>The frame-rate jitter trick</h4>
+
   <p>
     During pretraining, the stride between successive frames is randomly sampled between 1 and 4 fps.
     This forces the model to handle both slow motion (~0.3 m between frames at 4 fps) and fast motion
     (~3 m at 1 fps). The result is a model that's robust at <strong>inference</strong> when the user
     might supply video at any sampling rate.
   </p>
+
   <p>
     A complementary trick: positional embeddings use <strong>sinusoidal temporal encoding</strong>
     projected through an MLP. This means the model knows the exact time gap between two frames, not
     just that one comes after the other.
   </p>
 </section>
+
 <!-- ==================== 07 — LATENT SPACE ==================== -->
 <section class="chapter" id="latent-space">
   <div class="chapter-num">07 — WHAT THE MODEL LEARNS</div>
   <h2>The hidden structure of motion</h2>
+
   <p>
     Here's the beautiful surprise. After pretraining on 10 million unlabelled clips, project the
     latent actions to 2-D with t-SNE and colour them by ground-truth speed (which the model
     <em>never saw during training</em>). The structure is undeniable:
   </p>
+
   <div class="widget">
     <div class="widget-title">Interactive · Latent action space, coloured by speed</div>
     <canvas id="tsneCanvas" class="widget-canvas" style="height: 380px;"></canvas>
@@ -1244,12 +1337,14 @@
       motion representation — and is exactly why a tiny pose head can decode pose from it later.
     </p>
   </div>
+
   <p>
     To appreciate what this means: the t-SNE plot shown by the LA-Pose authors on their project page
     has visibly clean clusters for "going straight slow," "going straight fast," "turning left,"
     "turning right" — without ever telling the model what those concepts are. That's emergent
     structure, the same flavour of magic that made GPT and DINO famous.
   </p>
+
   <div class="callout">
     <div class="callout-label">Why this matters for transfer</div>
     <p>
@@ -1259,16 +1354,20 @@
     </p>
   </div>
 </section>
+
 <!-- ==================== 08 — RESULTS ==================== -->
 <section class="chapter" id="results">
   <div class="chapter-num">08 — RESULTS</div>
   <h2>How well does it actually work?</h2>
+
   <p>
     The headline benchmark is <em>AUC@5</em> on Waymo (in-distribution) and PandaSet (zero-shot,
     completely unseen during training). Higher is better. The contenders: Rig3R, VGGT, and MapAnything,
     all state-of-the-art feed-forward 3D methods trained with much more labelled data.
   </p>
+
   <h3>Waymo benchmark (in-distribution)</h3>
+
   <div class="widget">
     <div class="widget-title">Pose accuracy · AUC@5° on Waymo</div>
     <div class="bench-row">
@@ -1292,7 +1391,9 @@
       <span class="bench-val" style="color: var(--la-green);">91.4</span>
     </div>
   </div>
+
   <h3>PandaSet (zero-shot — model never saw this distribution)</h3>
+
   <div class="widget">
     <div class="widget-title">Generalisation · AUC@5° on PandaSet</div>
     <div class="bench-row">
@@ -1311,16 +1412,20 @@
       <span class="bench-val" style="color: var(--la-green);">86.3</span>
     </div>
   </div>
+
   <p>
     Beyond means: <strong>variance matters</strong>. The paper plots the distribution of per-scene
     AUC scores and shows that LA-Pose's predictions cluster near perfect, while VGGT has a long tail
     of failures. The model is reliable, not just on-average correct.
   </p>
+
   <h3>Robustness across frame rates</h3>
+
   <p>
     Because of the fps jitter during training, LA-Pose holds up well as you sparsen the input video.
     At 1 fps — only one frame per second, a brutal regime — it still gets 85.7 % AUC@5.
   </p>
+
   <table class="data">
     <tr><th>FPS</th><th>Method</th><th class="num">AUC@5 ↑</th><th class="num">ATE-S ×10⁻² ↓</th></tr>
     <tr><td>4.0</td><td>VGGT</td><td class="num">74.1</td><td class="num">1.03</td></tr>
@@ -1330,7 +1435,9 @@
     <tr><td>1.0</td><td>VGGT</td><td class="num">74.6</td><td class="num">1.43</td></tr>
     <tr class="highlight"><td>1.0</td><td>LA-Pose</td><td class="num">85.7</td><td class="num">1.16</td></tr>
   </table>
+
   <h3>The "freeze vs fine-tune" insight</h3>
+
   <p>
     A counter-intuitive ablation: <strong>freezing the pretrained backbone generalises better than
     fine-tuning it</strong>. On in-distribution Waymo, both work equally well. But on zero-shot
@@ -1338,6 +1445,7 @@
     representation toward Waymo's specific distribution, eroding the rich motion priors learned from
     10 M videos.
   </p>
+
   <div class="callout">
     <div class="callout-label">Lesson for practitioners</div>
     <p>
@@ -1347,10 +1455,12 @@
     </p>
   </div>
 </section>
+
 <!-- ==================== 09 — COMPARISON ==================== -->
 <section class="chapter" id="comparison">
   <div class="chapter-num">09 — COMPARISON</div>
   <h2>How LA-Pose differs from the field</h2>
+
   <table class="data">
     <tr>
       <th>Method</th>
@@ -1375,19 +1485,23 @@
       <td>LA-Pose</td><td>Latent action (pose)</td><td>~10M unlabelled + tiny labelled</td><td>Low (feed-fwd)</td><td>Strong, even zero-shot</td>
     </tr>
   </table>
+
   <p>
     The key distinction is the <em>purpose</em> of latent actions. Genie used them to make controllable
     video games. LAPA used them as proxies for robot policy actions. LA-Pose is the first work to use
     them for <strong>geometric inference</strong> — and it turns out that's where they shine for ego-motion.
   </p>
 </section>
+
 <!-- ==================== 10 — LIMITATIONS ==================== -->
 <section class="chapter" id="limits">
   <div class="chapter-num">10 — LIMITATIONS & OPEN QUESTIONS</div>
   <h2>What still breaks</h2>
+
   <p>
     No method is universal, and LA-Pose's authors are admirably explicit about its failure modes.
   </p>
+
   <div class="cards">
     <div class="card">
       <div class="card-title">Reverse motion</div>
@@ -1420,7 +1534,9 @@
       </div>
     </div>
   </div>
+
   <h3>Open research directions</h3>
+
   <ul style="line-height: 1.9; color: var(--text-dim);">
     <li>Scaling pretraining beyond driving to "in-the-wild embodied videos" — handheld, head-mounted, drone footage.</li>
     <li>Joint training of latent action + depth + 3D structure into a single foundation model.</li>
@@ -1428,17 +1544,22 @@
     <li>Multi-view extensions — current LA-Pose is monocular and front-facing.</li>
   </ul>
 </section>
+
 <!-- ==================== 11 — APPLY ==================== -->
 <section class="chapter" id="apply">
   <div class="chapter-num">11 — APPLY IT YOURSELF</div>
   <h2>Adapting LA-Pose to your dataset</h2>
+
   <p>
     Suppose you don't have a fleet of LiDAR-equipped vehicles, but you do have a stack of GoPro
     footage, a research robot, or just a YouTube playlist. Can you build something like LA-Pose? Yes —
     and the pieces are surprisingly modular. Here's a practical playbook.
   </p>
+
   <h3>11.1 · Required data and format</h3>
+
   <p>You need two pools of video data.</p>
+
   <div class="cards">
     <div class="card">
       <div class="card-title">Pool A · Unlabelled video (large)</div>
@@ -1457,7 +1578,9 @@
       </div>
     </div>
   </div>
+
   <h3>11.2 · Recommended folder structure</h3>
+
   <pre><code class="language-bash">la_pose_project/
 ├── data/
 │   ├── unlabeled/                   # Pool A
@@ -1479,12 +1602,15 @@
     ├── extract_clips.py
     ├── train_idm.py
     └── train_posehead.py</code></pre>
+
   <h3>11.3 · Building frame pairs</h3>
+
   <p>
     The pretraining sample is just a sequence of 16 frames at a random fps. Sample stride uniformly
     from {1, 2, 3, 4} (or whatever range matches your domain) — this is the temporal jitter that
     makes the model frame-rate-agnostic.
   </p>
+
   <pre><code class="language-python">import random
 import numpy as np
 from PIL import Image
@@ -1497,11 +1623,14 @@ def make_training_sample(video_path, T=16, target_size=(960, 448)):
     indices = [start + i * stride for i in range(T)]
     frames = [load_frame(video_path, i, size=target_size) for i in indices]
     return np.stack(frames), stride           # shape (16, H, W, 3)</code></pre>
+
   <h3>11.4 · Minimal IDM/FDM training loop</h3>
+
   <p>
     This is pseudo-code that captures the structural skeleton — your real code will have far more
     bells and whistles (mixed-precision, gradient accumulation, EMA, etc.).
   </p>
+
   <pre><code class="language-python">import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -1545,7 +1674,9 @@ def step(model, batch, vq_encoder):
                            target_codes.flatten())
     loss.backward()
     return loss.item()</code></pre>
+
   <h3>11.5 · The pose head</h3>
+
   <pre><code class="language-python">class PoseHead(nn.Module):
     """Decodes 7-DoF pose + FoV + metric scale from latent actions."""
     def __init__(self, dim=1536, n_actions=15):
@@ -1567,7 +1698,9 @@ def step(model, batch, vq_encoder):
         trans, quat, fov = pose[..., :3], pose[..., 3:7], pose[..., 7:]
         quat = quat / quat.norm(dim=-1, keepdim=True)
         return trans, quat, fov, scale</code></pre>
+
   <h3>11.6 · Pose post-training loss</h3>
+
   <pre><code class="language-python">def pose_loss(pred, target):
     trans_p, quat_p, fov_p, scale_p = pred
     trans_t, quat_t, fov_t, scale_t = target
@@ -1582,10 +1715,13 @@ def step(model, batch, vq_encoder):
     L_s = (scale_p.log() - scale_t.log()).abs().mean()
 
     return L_t + L_q + 0.1 * L_f + 0.5 * L_s</code></pre>
+
   <h3>11.7 · Compute budget — for a smaller project</h3>
+
   <p>
     The full 32-H100 pretrain is overkill for most labs. Realistic scaled-down setups:
   </p>
+
   <div class="kv-grid">
     <div class="kv">
       <div class="kv-key">Tiny (proof of concept)</div>
@@ -1604,8 +1740,11 @@ def step(model, batch, vq_encoder):
       <div class="kv-val">32× H100 · 10M clips · 4 days</div>
     </div>
   </div>
+
   <h3>11.8 · Debugging checklist</h3>
+
   <p>When your reproduction looks off, the usual suspects:</p>
+
   <ul style="line-height: 1.9; color: var(--text-dim);">
     <li><strong>Latent dim too large?</strong> If pre-training loss drops fast but pose accuracy is bad,
     the bottleneck is letting appearance leak. Try squeezing to 50–128.</li>
@@ -1616,7 +1755,9 @@ def step(model, batch, vq_encoder):
     Train with stride jitter from day one.</li>
     <li><strong>Bad PandaSet-style generalisation?</strong> Confirm the backbone is <em>frozen</em> during post-training.</li>
   </ul>
+
   <h3>11.9 · Recommended libraries</h3>
+
   <div class="cards">
     <div class="card">
       <div class="card-title">PyTorch + Lightning</div>
@@ -1644,10 +1785,12 @@ def step(model, batch, vq_encoder):
     </div>
   </div>
 </section>
+
 <!-- ==================== 12 — FURTHER READING ==================== -->
 <section class="chapter" id="further">
   <div class="chapter-num">12 — FURTHER READING</div>
   <h2>Where to go next</h2>
+
   <div class="cards">
     <a href="https://arxiv.org/abs/2402.15391" target="_blank" rel="noopener" class="card" style="border-bottom: 1px solid var(--border);">
       <div class="card-title">Genie (DeepMind, 2024)</div>
@@ -1682,6 +1825,7 @@ def step(model, batch, vq_encoder):
       <div class="card-desc">Official site with interactive latent-space demo and in-the-wild YouTube driving videos.</div>
     </a>
   </div>
+
   <div class="callout" style="margin-top: 3rem;">
     <div class="callout-label">Cite this paper</div>
     <pre style="background: transparent; border: none; padding: 8px 0; font-size: 0.78rem; color: var(--text-dim); margin: 0; overflow-x: auto;">@inproceedings{Wang2026LAPose,
@@ -1693,6 +1837,7 @@ def step(model, batch, vq_encoder):
 }</pre>
   </div>
 </section>
+
 <footer>
   <p>
     An unofficial educational walkthrough of <a href="https://arxiv.org/abs/2604.27448" target="_blank" rel="noopener">LA-Pose (Wang et al., CVPR 2026)</a>.
@@ -1701,8 +1846,10 @@ def step(model, batch, vq_encoder):
     Built with hand-written SVG, Canvas, and a great deal of curiosity. All credit for the research goes to the original authors.
   </p>
 </footer>
+
 </main>
 </div>
+
 <!-- ============================================== -->
 <!-- ============== JAVASCRIPT ==================== -->
 <!-- ============================================== -->
@@ -2434,5 +2581,6 @@ def step(model, batch, vq_encoder):
   });
 })();
 </script>
+
 </body>
 </html>
