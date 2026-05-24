@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Flow Matching: Teaching Machines to Move Like Rivers</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Manrope:wght@200..800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- MathJax -->
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" defer></script>
+
+<!-- Prism -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js" defer></script>
+
+<style>
+/* ========== DESIGN TOKENS ========== */
+:root {
+  --bg: #080810;
+  --surface: #10101c;
+  --surface2: #181828;
+  --border: rgba(255,255,255,0.07);
+  --accent: #6ee7f7;
+  --accent2: #a78bfa;
+  --accent3: #34d399;
+  --accent-soft: rgba(110,231,247,0.12);
+  --accent2-soft: rgba(167,139,250,0.12);
+  --accent3-soft: rgba(52,211,153,0.12);
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --code-bg: #1e1e2e;
+  --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --sans: "Manrope", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 350;
+  line-height: 1.68;
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Grain overlay */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode: overlay;
+}
+
+::selection { background: var(--accent); color: #080810; }
+
+/* ========== TYPOGRAPHY ========== */
+h1,h2,h3,h4 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-variation-settings: "opsz" 144;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.1;
+  margin: 0;
+}
+h1 { font-size: clamp(2.4rem,6vw,5rem); }
+h2 { font-size: clamp(1.8rem,3.6vw,3rem); margin: 0 0 0.6rem; }
+h3 { font-size: clamp(1.3rem,2.2vw,1.8rem); margin: 2.4rem 0 0.8rem; }
+h4 { font-size: 1.1rem; font-family: var(--sans); font-weight: 600; margin: 1.4rem 0 0.5rem; }
+
+p { margin: 0 0 1.1rem; }
+em { font-style: italic; font-family: var(--serif); color: var(--accent); }
+strong { font-weight: 600; color: var(--text); }
+a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted rgba(110,231,247,0.4); transition: all 0.2s; }
+a:hover { border-bottom-color: var(--accent); background: var(--accent-soft); }
+
+code:not(pre code) {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: var(--accent);
+}
+
+pre {
+  background: var(--code-bg) !important;
+  border-radius: var(--radius);
+  padding: 1.4rem 1.6rem !important;
+  overflow-x: auto;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  border: 1px solid var(--border);
+  position: relative;
+  margin: 1.4rem 0 1.6rem;
+}
+pre code { font-family: var(--mono); }
+
+/* ========== LAYOUT ========== */
+.wrapper {
+  display: grid;
+  grid-template-columns: 240px minmax(0,1fr);
+  gap: 3rem;
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+.main-content { max-width: 780px; }
+
+@media(max-width:900px) {
+  .wrapper { grid-template-columns: 1fr; }
+  .toc-sidebar { display: none; }
+  .wrapper { padding: 0 1.2rem; }
+}
+
+/* ========== HERO ========== */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  overflow: hidden;
+}
+.hero canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+}
+.hero h1 { margin-bottom: 1rem; }
+.hero .subtitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1rem,2vw,1.35rem);
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+.hero .meta-line {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 2.5rem;
+}
+.hero .meta-line span { color: var(--accent); font-weight: 600; }
+
+/* Summary cards */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+.summary-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem 1rem;
+  text-align: left;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.summary-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.summary-card .card-icon {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+.summary-card h4 {
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+  color: var(--accent);
+}
+.summary-card p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* ========== TOC SIDEBAR ========== */
+.toc-sidebar {
+  position: sticky;
+  top: 2rem;
+  align-self: start;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  padding-right: 1rem;
+}
+.toc-sidebar h4 {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin: 0 0 0.8rem;
+}
+.toc-sidebar ul { list-style: none; padding: 0; margin: 0; }
+.toc-sidebar li { margin-bottom: 0.25rem; }
+.toc-sidebar a {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  padding: 4px 0 4px 12px;
+  border-left: 2px solid transparent;
+  border-bottom: none;
+  transition: all 0.2s;
+}
+.toc-sidebar a:hover { color: var(--text); background: none; }
+.toc-sidebar a.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  font-weight: 500;
+}
+
+/* ========== SECTIONS ========== */
+section {
+  padding: 3.5rem 0 2rem;
+  border-bottom: 1px solid var(--border);
+}
+section:last-child { border-bottom: none; }
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* ========== CALLOUT BOXES ========== */
+.callout {
+  border-radius: var(--radius);
+  padding: 1.3rem 1.6rem;
+  margin: 1.6rem 0;
+  border-left: 3px solid;
+}
+.callout.insight {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.callout.math-note {
+  background: var(--accent2-soft);
+  border-color: var(--accent2);
+}
+.callout.robotics {
+  background: var(--accent3-soft);
+  border-color: var(--accent3);
+}
+.callout .callout-title {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+.callout.insight .callout-title { color: var(--accent); }
+.callout.math-note .callout-title { color: var(--accent2); }
+.callout.robotics .callout-title { color: var(--accent3); }
+
+/* ========== INTERACTIVE CANVASES ========== */
+.canvas-container {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1.4rem 0;
+}
+.canvas-container canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.canvas-label {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* ========== COMPARISON TABLE ========== */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 1.4rem 0;
+}
+.compare-table th {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 0.8rem 1rem;
+  text-align: left;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+}
+.compare-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text);
+}
+.compare-table tr:hover td { background: var(--surface); }
+.compare-table td:first-child { font-weight: 600; color: var(--accent); white-space: nowrap; }
+
+/* ========== CHECKPOINT CARDS ========== */
+.checkpoint {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 1.6rem 0;
+  overflow: hidden;
+}
+.checkpoint-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.2rem 1.4rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.checkpoint-badge {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--accent2-soft);
+  color: var(--accent2);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.checkpoint-header h4 { margin: 0; color: var(--accent2); font-size: 0.95rem; }
+.checkpoint-body { padding: 1.4rem; }
+.checkpoint-q { margin-bottom: 1.2rem; }
+.checkpoint-q p { margin: 0 0 0.6rem; }
+.reveal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent2);
+  background: var(--accent2-soft);
+  border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.reveal-btn:hover { background: rgba(167,139,250,0.2); }
+.reveal-btn .arrow { transition: transform 0.3s; }
+.reveal-btn.open .arrow { transform: rotate(90deg); }
+.reveal-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease, padding 0.3s ease;
+  background: rgba(167,139,250,0.05);
+  border-radius: 8px;
+  padding: 0 1rem;
+  margin-top: 0.6rem;
+}
+.reveal-answer.open {
+  max-height: 600px;
+  padding: 1rem;
+}
+.reveal-answer p { font-size: 0.92rem; color: var(--text-muted); }
+.reveal-answer p:last-child { margin-bottom: 0; }
+
+/* ========== SVG DIAGRAMS ========== */
+.diagram-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin: 1.6rem 0;
+  overflow-x: auto;
+}
+.diagram-container svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+/* ========== CODE COPY BUTTON ========== */
+.code-wrapper { position: relative; }
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 2;
+}
+.copy-btn:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+
+/* ========== SLIDER ========== */
+.slider-control {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 0.8rem 1rem;
+  background: var(--surface);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.slider-control label {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--accent2);
+  white-space: nowrap;
+}
+.slider-control input[type=range] {
+  flex: 1;
+  accent-color: var(--accent);
+  height: 6px;
+}
+.slider-control .slider-val {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--accent);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* ========== TIMELINE ========== */
+.timeline {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+  margin: 1.4rem 0;
+}
+.timeline-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1rem 1.2rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: border-color 0.3s;
+}
+.timeline-item:hover { border-color: var(--accent); }
+.timeline-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  border-radius: 8px;
+}
+.timeline-text h4 { margin: 0 0 0.3rem; font-size: 0.95rem; color: var(--text); }
+.timeline-text p { margin: 0; font-size: 0.85rem; color: var(--text-muted); line-height: 1.45; }
+.timeline-pain { color: #f87171; font-weight: 600; }
+.timeline-text .timeline-pain { color: #f87171; }
+
+/* ========== FURTHER READING CARDS ========== */
+.paper-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin: 1.4rem 0;
+}
+.paper-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.4rem;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.paper-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
+.paper-card h4 { margin: 0 0 0.4rem; color: var(--accent2); font-size: 0.95rem; }
+.paper-card p { margin: 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; }
+.paper-card .paper-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+.paper-tag.foundation { background: var(--accent-soft); color: var(--accent); }
+.paper-tag.robotics { background: var(--accent3-soft); color: var(--accent3); }
+.paper-tag.image { background: var(--accent2-soft); color: var(--accent2); }
+.paper-tag.theory { background: rgba(251,191,36,0.12); color: #fbbf24; }
+
+/* ========== DECISION TREE ========== */
+.decision-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.4rem 0;
+}
+@media(max-width:600px) { .decision-grid { grid-template-columns: 1fr; } }
+.decision-col {
+  padding: 1.2rem 1.4rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.decision-col.yes { background: var(--accent3-soft); border-color: rgba(52,211,153,0.3); }
+.decision-col.no { background: rgba(248,113,113,0.06); border-color: rgba(248,113,113,0.2); }
+.decision-col h4 { margin: 0 0 0.8rem; }
+.decision-col.yes h4 { color: var(--accent3); }
+.decision-col.no h4 { color: #f87171; }
+.decision-col ul { padding-left: 1.2rem; margin: 0; }
+.decision-col li { font-size: 0.9rem; margin-bottom: 0.3rem; color: var(--text-muted); }
+
+/* ========== INSIGHT CARDS (summary) ========== */
+.insight-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 1.4rem 0;
+}
+.insight-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.4rem;
+  border-top: 3px solid var(--accent);
+}
+.insight-card .card-num {
+  font-family: var(--serif);
+  font-size: 2rem;
+  color: var(--accent);
+  opacity: 0.3;
+  line-height: 1;
+}
+.insight-card h4 { margin: 0.3rem 0 0.4rem; color: var(--text); font-size: 0.95rem; }
+.insight-card p { margin: 0; font-size: 0.85rem; color: var(--text-muted); line-height: 1.45; }
+
+/* ========== EQUATION BOX ========== */
+.eq-box {
+  background: var(--accent2-soft);
+  border: 1px solid rgba(167,139,250,0.2);
+  border-radius: var(--radius);
+  padding: 1.4rem 1.6rem;
+  margin: 1.4rem 0;
+  text-align: center;
+}
+.eq-label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent2);
+  margin-bottom: 0.6rem;
+}
+
+/* ========== FOOTER ========== */
+.site-footer {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ========== REDUCED MOTION ========== */
+@media(prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Lists */
+ul, ol { padding-left: 1.4rem; }
+li { margin-bottom: 0.4rem; color: var(--text); }
+li::marker { color: var(--accent); }
+
+/* Math block spacing */
+mjx-container[display="true"] { margin: 1.2rem 0 !important; }
+</style>
+</head>
+<body>
+
+<!-- ================================================================== -->
+<!-- HERO SECTION                                                       -->
+<!-- ================================================================== -->
+<header class="hero" id="top">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-content">
+    <h1>Flow Matching</h1>
+    <p class="subtitle">Teaching Machines to Move Like Rivers &mdash; a guided workshop on continuous-time generative modeling, from intuition to working PyTorch, with detours through robot arms and vision-language-action systems.</p>
+    <p class="meta-line"><span>~35 min read</span> &middot; Interactive tutorial &middot; Includes runnable code</p>
+    <div class="summary-cards">
+      <div class="summary-card">
+        <span class="card-icon" aria-hidden="true">&#9758;</span>
+        <h4>Intuition First</h4>
+        <p>Vector fields, flows, and the river analogy &mdash; no prerequisites beyond high-school math.</p>
+      </div>
+      <div class="summary-card">
+        <span class="card-icon" aria-hidden="true">&#8721;</span>
+        <h4>The Math</h4>
+        <p>Probability paths, the conditional trick, CFM loss, and ODE sampling &mdash; built up slowly.</p>
+      </div>
+      <div class="summary-card">
+        <span class="card-icon" aria-hidden="true">&#9881;</span>
+        <h4>Robotics &amp; VLAs</h4>
+        <p>How Flow Matching powers modern robot policies and vision-language-action models.</p>
+      </div>
+      <div class="summary-card">
+        <span class="card-icon" aria-hidden="true">&#9997;</span>
+        <h4>Working Code</h4>
+        <p>Complete PyTorch implementation you can run &mdash; from a toy 2D example to VLA integration.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ================================================================== -->
+<!-- MAIN LAYOUT: TOC + CONTENT                                         -->
+<!-- ================================================================== -->
+<div class="wrapper">
+<!-- TOC Sidebar -->
+<nav class="toc-sidebar" aria-label="Table of contents">
+  <h4>Contents</h4>
+  <ul>
+    <li><a href="#hook">The River Analogy</a></li>
+    <li><a href="#core-problem">The Core Problem</a></li>
+    <li><a href="#vector-fields">Vector Fields &amp; Flows</a></li>
+    <li><a href="#math">Math Foundations</a></li>
+    <li><a href="#checkpoint1">Checkpoint 1</a></li>
+    <li><a href="#comparison">FM vs Diffusion</a></li>
+    <li><a href="#robotics">FM in Robotics</a></li>
+    <li><a href="#checkpoint2">Checkpoint 2</a></li>
+    <li><a href="#vla">FM in VLA Models</a></li>
+    <li><a href="#code">Code Examples</a></li>
+    <li><a href="#summary">Summary</a></li>
+    <li><a href="#reading">Further Reading</a></li>
+  </ul>
+</nav>
+
+<!-- Main Content -->
+<main class="main-content">
+
+<!-- ================================================================== -->
+<!-- SECTION 1: HOOK                                                    -->
+<!-- ================================================================== -->
+<section id="hook">
+  <span class="section-label">01 &mdash; The Hook</span>
+  <h2>A River, Not a Ladder</h2>
+
+  <p>Picture a river delta from above. Thousands of water droplets begin life scattered randomly across the highlands &mdash; chaotic, formless. Call this <em>noise</em>. They all end up flowing through the same delta into the ocean &mdash; structured, beautiful. Call this <em>the data</em>.</p>
+
+  <p>Each droplet doesn't teleport. It doesn't take huge discrete jumps. It just <strong>moves a tiny bit in the direction the landscape pushes it</strong>, over and over, until it arrives.</p>
+
+  <p>That landscape &mdash; the field of arrows telling every droplet at every moment which way to go &mdash; is what Flow Matching learns.</p>
+
+  <!-- River SVG animation -->
+  <div class="diagram-container" id="riverDiagramContainer">
+    <svg id="riverSvg" viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg">
+      <!-- Background gradient -->
+      <defs>
+        <linearGradient id="riverGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#6ee7f7" stop-opacity="0.08"/>
+          <stop offset="100%" stop-color="#34d399" stop-opacity="0.08"/>
+        </linearGradient>
+        <marker id="arrowHead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+          <path d="M0,0 L6,2 L0,4" fill="none" stroke="#6ee7f7" stroke-width="0.8" opacity="0.5"/>
+        </marker>
+      </defs>
+      <rect width="700" height="220" fill="url(#riverGrad)" rx="10"/>
+      <!-- Labels -->
+      <text x="60" y="200" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="11" text-anchor="middle">NOISE</text>
+      <text x="640" y="200" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="11" text-anchor="middle">DATA</text>
+      <!-- Flow arrows (static grid) -->
+      <g opacity="0.25">
+        <line x1="80" y1="40" x2="130" y2="45" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="80" y1="80" x2="135" y2="75" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="80" y1="120" x2="135" y2="115" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="80" y1="160" x2="130" y2="150" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="200" y1="50" x2="260" y2="60" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="200" y1="90" x2="260" y2="90" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="200" y1="130" x2="260" y2="120" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="200" y1="170" x2="255" y2="150" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="340" y1="60" x2="400" y2="75" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="340" y1="100" x2="400" y2="100" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="340" y1="140" x2="400" y2="120" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="480" y1="80" x2="540" y2="95" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="480" y1="110" x2="540" y2="105" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+        <line x1="480" y1="140" x2="540" y2="115" stroke="#6ee7f7" stroke-width="1" marker-end="url(#arrowHead)"/>
+      </g>
+      <!-- Animated particles will be added by JS -->
+    </svg>
+  </div>
+
+  <p>Now picture a robot arm. It starts in some neutral pose. You want it to smoothly reach for a coffee mug. The arm shouldn't teleport through space, it shouldn't twitch erratically. It should <em>flow</em> &mdash; continuously, predictably &mdash; from start to goal.</p>
+
+  <p>Same idea. Same math. Same model class.</p>
+
+  <div class="callout insight">
+    <div class="callout-title">The big idea</div>
+    <p><strong>Flow Matching is the framework for learning these flows.</strong> This tutorial will walk you through what it is, why it's elegant, and why it's quietly taking over robot policy learning and modern vision-language-action models.</p>
+  </div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 2: THE CORE PROBLEM                                        -->
+<!-- ================================================================== -->
+<section id="core-problem">
+  <span class="section-label">02 &mdash; The Core Problem</span>
+  <h2>Why Diffusion Was Awkward</h2>
+
+  <p>Generative modeling has one job: <em>given samples from some complicated distribution (real images, robot trajectories, sentences), learn to produce more</em>. The hard part is that we usually can't write down the data distribution. We only have samples.</p>
+
+  <p>Earlier approaches each had pain points:</p>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-icon">G</div>
+      <div class="timeline-text">
+        <h4>GANs</h4>
+        <p>A discriminator-generator arms race. <span class="timeline-pain">Unstable, mode-collapsing, vibes-based to train.</span></p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-icon">V</div>
+      <div class="timeline-text">
+        <h4>VAEs</h4>
+        <p>Tractable inference &mdash; but <span class="timeline-pain">blurry outputs</span> and limited expressiveness.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-icon">N</div>
+      <div class="timeline-text">
+        <h4>Normalizing Flows</h4>
+        <p>Exact likelihoods &mdash; but <span class="timeline-pain">require invertible architectures with tractable Jacobians</span>. Restrictive.</p>
+      </div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-icon">D</div>
+      <div class="timeline-text">
+        <h4>Diffusion Models</h4>
+        <p>Beautiful results &mdash; but <span class="timeline-pain">conceptually heavy</span>. Forward SDE, score function, noise schedule, Tweedie correction, variance bookkeeping, hundreds of sampling steps.</p>
+      </div>
+    </div>
+  </div>
+
+  <p>Diffusion <em>works</em>, but the path from "I want to generate data" to "okay so I need a forward SDE, a score function, a noise schedule, a Tweedie correction..." is steep.</p>
+
+  <div class="callout insight">
+    <div class="callout-title">The shift</div>
+    <p><strong>Flow Matching asks: what if we just learn the arrows directly?</strong> Instead of an elaborate stochastic process you have to invert, you specify a path from noise to data and learn the velocity field that traces it. Training reduces to a simple regression. Sampling reduces to solving an ODE. That's the whole pitch.</p>
+  </div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 3: VECTOR FIELDS                                           -->
+<!-- ================================================================== -->
+<section id="vector-fields">
+  <span class="section-label">03 &mdash; Core Intuition</span>
+  <h2>Vector Fields and Flows</h2>
+
+  <h3>What is a vector field?</h3>
+
+  <p>A <strong>vector field</strong> is a function that assigns an arrow (a direction and magnitude) to every point in space. Think of a weather map showing wind: at each location, there's an arrow telling you which way the wind blows and how fast.</p>
+
+  <p>If you drop a particle anywhere in that field, the arrow tells it which way to move next. The particle's trajectory is determined entirely by following the arrows.</p>
+
+  <p><strong>Click anywhere on the canvas below to drop a particle and watch it flow:</strong></p>
+
+  <div class="canvas-container">
+    <canvas id="vectorFieldCanvas" width="700" height="400"></canvas>
+    <span class="canvas-label">click to add particles</span>
+  </div>
+
+  <h3>What is a flow?</h3>
+
+  <p>A <strong>flow</strong> is what you get when you actually integrate that vector field over time. If you start at point $x_0$ at time $t=0$ and follow the arrows, you trace out a smooth path $x(t)$. After a fixed time (say $t=1$), every starting point has been mapped to some endpoint. That mapping is the flow.</p>
+
+  <p>If we set things up so that starting points $x_0$ are samples from <strong>noise</strong> (e.g., Gaussian) and ending points $x_1$ are samples from <strong>data</strong>, then the flow is a generator. Sample noise, run the ODE, get data.</p>
+
+  <h3>The big idea</h3>
+
+  <div class="callout insight">
+    <div class="callout-title">In one sentence</div>
+    <p><strong>Flow Matching = supervised learning of a vector field whose flow maps noise to data.</strong></p>
+    <p>That's it. Everything else is bookkeeping.</p>
+  </div>
+
+  <p>The two things we need to figure out are:</p>
+  <ol>
+    <li><strong>What target vector field</strong> should the network try to match? (We need ground-truth arrows to regress against.)</li>
+    <li><strong>How do we get those targets</strong> when we only have noise samples and data samples &mdash; not the field itself?</li>
+  </ol>
+
+  <p>The clever trick of Flow Matching is answering #2 without ever computing the true marginal vector field. We'll get there next.</p>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 4: MATH FOUNDATIONS                                        -->
+<!-- ================================================================== -->
+<section id="math">
+  <span class="section-label">04 &mdash; Mathematical Foundations</span>
+  <h2>The Math, Slowly</h2>
+
+  <p>We'll build this up piece by piece. Each equation gets unpacked before it appears.</p>
+
+  <h3>4.1 &mdash; Prerequisite: What is an ODE?</h3>
+
+  <p>An <strong>ordinary differential equation (ODE)</strong> is just a rule that says: "given where you are right now, here's how fast you should move." If you know your current position $x$ and time $t$, the ODE tells you your velocity $\frac{dx}{dt}$. You then take a tiny step in that direction, and repeat. That's all "solving an ODE" means &mdash; following a trail of breadcrumbs.</p>
+
+  <h3>4.2 &mdash; Prerequisite: Probability Distributions</h3>
+
+  <p>A <strong>probability distribution</strong> tells you how likely different outcomes are. A Gaussian (bell curve) means most values cluster near the center; a ring distribution means values cluster on a circle. When we say $x \sim p$, we mean "$x$ is a random sample drawn from distribution $p$."</p>
+
+  <h3>4.3 &mdash; Probability Paths</h3>
+
+  <p>We have two distributions:</p>
+  <ul>
+    <li>$p_0$ &mdash; the source distribution. Usually $\mathcal{N}(0, I)$ (Gaussian noise).</li>
+    <li>$p_1$ &mdash; the data distribution. We only have samples from it.</li>
+  </ul>
+
+  <p>A <strong>probability path</strong> $p_t$ for $t \in [0, 1]$ is a continuous family of distributions that morphs from $p_0$ to $p_1$. Think of it like a movie: frame 0 is pure Gaussian noise, frame 1 is real data, and the in-between frames are smooth interpolations.</p>
+
+  <p><strong>Use the slider below to watch noise morph into data:</strong></p>
+
+  <div class="canvas-container">
+    <canvas id="interpolantCanvas" width="700" height="300"></canvas>
+    <span class="canvas-label">interpolation demo</span>
+  </div>
+  <div class="slider-control">
+    <label for="tSlider">t =</label>
+    <input type="range" id="tSlider" min="0" max="100" value="0" step="1">
+    <span class="slider-val" id="tVal">0.00</span>
+  </div>
+
+  <p>How we <strong>choose</strong> this path is a design decision. The simplest and most popular choice is the <strong>linear interpolant</strong>:</p>
+
+  <div class="eq-box">
+    <div class="eq-label">Linear Interpolant</div>
+    $$x_t = (1 - t)\, x_0 + t\, x_1$$
+  </div>
+
+  <p>In words: at time $t$, you're a weighted blend of a noise sample $x_0$ and a data sample $x_1$. At $t=0$ you're pure noise. At $t=1$ you're pure data. In between, a mix. The slider above shows exactly this.</p>
+
+  <h3>4.4 &mdash; Vector Fields and the Continuity Equation</h3>
+
+  <p>If samples follow a flow, the distribution they live in evolves over time. The math that connects "particles moving" to "distributions changing" is the <strong>continuity equation</strong>:</p>
+
+  $$\frac{\partial p_t}{\partial t} + \nabla \cdot (p_t\, u_t) = 0$$
+
+  <p>Don't be intimidated. Here's the plain-English version:</p>
+  <ul>
+    <li>$p_t$ is the density of where particles are at time $t$.</li>
+    <li>$u_t(x)$ is the velocity arrow at position $x$, time $t$.</li>
+    <li>The equation just says: <em>density doesn't appear or disappear; it gets pushed around by the velocity field.</em></li>
+  </ul>
+
+  <p>It's mass conservation for probability.</p>
+
+  <p>The <strong>true marginal velocity field</strong> $u_t(x)$ is the field that transports $p_0$ to $p_1$ along the path $p_t$. If we could regress directly against $u_t(x)$, we'd be done. But we can't compute it &mdash; it depends on the whole distribution.</p>
+
+  <h3>4.5 &mdash; The Conditional Trick <span style="color:var(--accent2)">(this is the magic)</span></h3>
+
+  <p>Here's the move that makes Flow Matching tractable.</p>
+
+  <p>Instead of trying to learn the marginal velocity (which integrates over all data points), we define a <strong>conditional velocity</strong> &mdash; one that depends on a specific data point $x_1$.</p>
+
+  <p>For our linear interpolant $x_t = (1-t)x_0 + t x_1$, what's the velocity? Just take the derivative with respect to $t$:</p>
+
+  $$\frac{d x_t}{dt} = -x_0 + x_1 = x_1 - x_0$$
+
+  <div class="callout math-note">
+    <div class="callout-title">The key insight</div>
+    <p>The velocity along the straight line from $x_0$ to $x_1$ is just the displacement $x_1 - x_0$. <strong>Constant in time, trivial to compute.</strong> No noise schedules, no score functions. Just a subtraction.</p>
+  </div>
+
+  <h3>4.6 &mdash; The Conditional Flow Matching Loss</h3>
+
+  <p>Here's the punchline. The Conditional Flow Matching (CFM) objective is just a regression loss:</p>
+
+  <div class="eq-box">
+    <div class="eq-label">CFM Loss (the entire training objective)</div>
+    $$\mathcal{L}_{\text{CFM}}(\theta) = \mathbb{E}_{t,\, x_0,\, x_1} \left[ \left\| v_\theta(x_t,\, t) - \underbrace{(x_1 - x_0)}_{\text{target velocity}} \right\|^2 \right]$$
+  </div>
+
+  <p>Where each term is:</p>
+  <ul>
+    <li>$t \sim \mathcal{U}(0,1)$ &mdash; sample a random time</li>
+    <li>$x_0 \sim \mathcal{N}(0,I)$ &mdash; sample noise</li>
+    <li>$x_1 \sim p_{\text{data}}$ &mdash; sample a real data point</li>
+    <li>$x_t = (1-t)x_0 + t x_1$ &mdash; build the interpolant</li>
+    <li>$v_\theta$ &mdash; your neural network (the learned velocity)</li>
+  </ul>
+
+  <p><strong>The deep result</strong> (Lipman et al., 2023): minimizing this conditional loss is equivalent (up to a constant) to matching the true marginal velocity field. You learn the right thing by regressing on easy targets.</p>
+
+  <p>That's the entire training procedure. Three lines:</p>
+
+  <div class="code-wrapper">
+    <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    <pre><code class="language-python">sample (x0, x1, t)
+xt = (1 - t) * x0 + t * x1
+loss = || model(xt, t) - (x1 - x0) ||^2</code></pre>
+  </div>
+
+  <p>No noise schedules. No score functions. No SDE discretization. No variance bookkeeping. Just regress velocities.</p>
+
+  <h3>4.7 &mdash; Sampling: Integrate the ODE</h3>
+
+  <p>Once trained, generation is solving an ordinary differential equation:</p>
+
+  $$\frac{dx}{dt} = v_\theta(x, t), \quad x(0) \sim \mathcal{N}(0, I)$$
+
+  <p>Integrate from $t = 0$ to $t = 1$, and $x(1)$ is your sample. The simplest integrator (Euler) is one line per step:</p>
+
+  $$x_{t+\Delta t} = x_t + v_\theta(x_t,\, t)\, \Delta t$$
+
+  <p>Walk along the arrows. Want better quality? Use a fancier ODE solver (Heun, RK4, adaptive). Want fewer steps? You can often get away with 5&ndash;20 for high-quality samples, compared to diffusion's typical 50&ndash;1000.</p>
+
+  <!-- Euler steps visualization -->
+  <div class="diagram-container">
+    <svg id="eulerSvg" viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="eulerGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.1"/>
+          <stop offset="100%" stop-color="#6ee7f7" stop-opacity="0.1"/>
+        </linearGradient>
+      </defs>
+      <rect width="700" height="200" fill="url(#eulerGrad)" rx="10"/>
+      <!-- t axis -->
+      <line x1="60" y1="160" x2="650" y2="160" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+      <text x="60" y="185" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">t=0</text>
+      <text x="640" y="185" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="end">t=1</text>
+      <!-- Euler steps -->
+      <polyline points="80,130 180,110 280,85 380,70 480,60 580,55 630,52" fill="none" stroke="#6ee7f7" stroke-width="2" opacity="0.8"/>
+      <!-- Step dots -->
+      <circle cx="80" cy="130" r="5" fill="#a78bfa"/>
+      <circle cx="180" cy="110" r="4" fill="#a78bfa" opacity="0.9"/>
+      <circle cx="280" cy="85" r="4" fill="#a78bfa" opacity="0.8"/>
+      <circle cx="380" cy="70" r="4" fill="#a78bfa" opacity="0.7"/>
+      <circle cx="480" cy="60" r="4" fill="#a78bfa" opacity="0.6"/>
+      <circle cx="580" cy="55" r="4" fill="#6ee7f7" opacity="0.8"/>
+      <circle cx="630" cy="52" r="6" fill="#6ee7f7"/>
+      <!-- Labels -->
+      <text x="80" y="150" fill="#a78bfa" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">x&#x2080;</text>
+      <text x="630" y="42" fill="#6ee7f7" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">x&#x2081; (sample!)</text>
+      <!-- Velocity arrows at each step -->
+      <line x1="80" y1="130" x2="130" y2="118" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowHead)" opacity="0.5"/>
+      <line x1="180" y1="110" x2="230" y2="95" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowHead)" opacity="0.5"/>
+      <line x1="280" y1="85" x2="330" y2="76" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowHead)" opacity="0.5"/>
+      <line x1="380" y1="70" x2="430" y2="64" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowHead)" opacity="0.5"/>
+      <line x1="480" y1="60" x2="530" y2="57" stroke="#34d399" stroke-width="1.5" marker-end="url(#arrowHead)" opacity="0.5"/>
+      <text x="350" y="30" fill="#94a3b8" font-family="Manrope, sans-serif" font-size="12" text-anchor="middle">Euler integration: follow the arrows step by step</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 5: CHECKPOINT 1                                            -->
+<!-- ================================================================== -->
+<section id="checkpoint1">
+  <span class="section-label">05 &mdash; Pause and Think</span>
+  <h2>Interactive Checkpoint #1</h2>
+
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-badge">Q1</span>
+      <h4>Why does the network need time $t$?</h4>
+    </div>
+    <div class="checkpoint-body">
+      <div class="checkpoint-q">
+        <p>In Flow Matching with the linear interpolant, the target velocity is $x_1 - x_0$. This is <strong>constant in time</strong> for a given pair. But the network's prediction $v_\theta(x_t, t)$ takes $t$ as input. <strong>Why does the network still need to depend on $t$?</strong></p>
+        <button class="reveal-btn" onclick="toggleReveal(this)"><span class="arrow">&#9654;</span> Think, then reveal</button>
+        <div class="reveal-answer">
+          <p>Because the network doesn't see $(x_0, x_1)$ directly &mdash; it only sees $x_t$. The same point $x_t$ could lie on many different lines (many different $(x_0, x_1)$ pairs). At early $t$, an $x_t$ that looks noisy probably came from many possible $x_1$'s; at late $t$, the point is close to a specific data point and the inferred velocity is much more certain.</p>
+          <p><strong>The marginal velocity (what the network actually learns) does change with time</strong> &mdash; it's the conditional velocity that happens to be constant. The network is averaging over all possible endpoint pairs consistent with the current state, and that average changes with $t$.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-badge">Q2</span>
+      <h4>What happens with 1 Euler step?</h4>
+    </div>
+    <div class="checkpoint-body">
+      <div class="checkpoint-q">
+        <p>Suppose you trained a Flow Matching model and at inference you used 1 Euler step (i.e., set $\Delta t = 1$ and take a single jump from $x_0$). What do you predict happens? Will it produce a reasonable sample?</p>
+        <button class="reveal-btn" onclick="toggleReveal(this)"><span class="arrow">&#9654;</span> Think, then reveal</button>
+        <div class="reveal-answer">
+          <p>Surprisingly, you'd get <em>something</em> &mdash; and for simple distributions, often something half-decent. A single Euler step is $x_1 \approx x_0 + v_\theta(x_0, 0) \cdot 1$. The model's prediction at $t=0$ is roughly $\mathbb{E}[x_1 - x_0 \mid x_0]$, which equals $\mathbb{E}[x_1 \mid x_0] - x_0$.</p>
+          <p>So the one-step prediction lands at the <strong>conditional mean</strong> of the data given the noise sample &mdash; basically a mode-averaged guess. Multi-step integration follows the curving trajectory in distribution space and resolves to a <em>specific</em> sample rather than the mean. This is exactly the intuition behind one-step distillation methods.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 6: COMPARISON TABLE                                        -->
+<!-- ================================================================== -->
+<section id="comparison">
+  <span class="section-label">06 &mdash; Head to Head</span>
+  <h2>Flow Matching vs Diffusion</h2>
+
+  <p>Both diffusion and Flow Matching are continuous-time generative models. They are deeply related &mdash; under specific path choices, you can show they are mathematically equivalent. But the framings differ in important practical ways.</p>
+
+  <!-- Curved vs straight diagram -->
+  <div class="diagram-container">
+    <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg">
+      <rect width="700" height="180" fill="rgba(16,16,28,0.5)" rx="10"/>
+      <!-- Diffusion path (curved) -->
+      <path d="M 80 130 Q 200 30, 350 100 Q 500 170, 620 60" fill="none" stroke="#f87171" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.7"/>
+      <circle cx="80" cy="130" r="5" fill="#f87171" opacity="0.8"/>
+      <circle cx="620" cy="60" r="5" fill="#f87171" opacity="0.8"/>
+      <text x="350" y="50" fill="#f87171" font-family="Manrope, sans-serif" font-size="12" text-anchor="middle" font-weight="600">Diffusion: curved, noisy path</text>
+      <!-- Flow matching path (straight) -->
+      <line x1="80" y1="140" x2="620" y2="70" stroke="#6ee7f7" stroke-width="2.5" opacity="0.8"/>
+      <circle cx="80" cy="140" r="5" fill="#6ee7f7"/>
+      <circle cx="620" cy="70" r="5" fill="#6ee7f7"/>
+      <text x="350" y="165" fill="#6ee7f7" font-family="Manrope, sans-serif" font-size="12" text-anchor="middle" font-weight="600">Flow Matching: straight line</text>
+      <!-- Endpoints -->
+      <text x="60" y="155" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">noise</text>
+      <text x="625" y="55" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">data</text>
+    </svg>
+  </div>
+
+  <div style="overflow-x:auto;">
+  <table class="compare-table">
+    <thead>
+      <tr><th>Aspect</th><th>Diffusion (DDPM / Score-based)</th><th>Flow Matching</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Training target</td><td>Noise $\epsilon$ or score $\nabla \log p_t(x)$</td><td>Velocity $v(x, t)$</td></tr>
+      <tr><td>Training loss</td><td>$\|\epsilon_\theta - \epsilon\|^2$ with variance-weighted schedule</td><td>$\|v_\theta - (x_1 - x_0)\|^2$ (plain MSE)</td></tr>
+      <tr><td>Forward process</td><td>Stochastic (SDE): gradually inject Gaussian noise</td><td>Deterministic interpolant (you choose the path)</td></tr>
+      <tr><td>Sampling</td><td>Reverse SDE or probability-flow ODE</td><td>ODE</td></tr>
+      <tr><td>Steps (typical)</td><td>50&ndash;1000 (DDPM); 20&ndash;50 (DDIM)</td><td>5&ndash;50</td></tr>
+      <tr><td>Trajectories</td><td>Curved, schedule-dependent</td><td>Can be straight lines (linear interpolant)</td></tr>
+      <tr><td>Hyperparameters</td><td>$\beta$ schedule, variance type, loss weighting</td><td>Just the interpolant choice (often: linear)</td></tr>
+      <tr><td>Stability</td><td>Sensitive to noise schedule and weighting</td><td>Robust; plain MSE works</td></tr>
+      <tr><td>Theory</td><td>Score matching, denoising</td><td>Continuous normalizing flows, optimal transport</td></tr>
+      <tr><td>Robotics fit</td><td>Good (Diffusion Policy is widely used)</td><td>Excellent (smoother, fewer steps, lower latency)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout insight">
+    <div class="callout-title">Takeaway</div>
+    <p>Flow Matching is a strictly simpler conceptual framework that often runs faster at inference and is easier to tune. Modern "rectified flow" image models like <strong>Stable Diffusion 3</strong> are Flow Matching under the hood.</p>
+  </div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 7: ROBOTICS                                                -->
+<!-- ================================================================== -->
+<section id="robotics">
+  <span class="section-label">07 &mdash; Robotics</span>
+  <h2>Flow Matching in Robotics</h2>
+
+  <h3>The robot policy problem</h3>
+
+  <p>You want a robot to do things. The classical formulation: given an observation $o_t$ (camera image, joint angles, gripper state), output an action $a_t$ (joint velocities, end-effector pose).</p>
+
+  <p>But pointwise action prediction has problems:</p>
+  <ul>
+    <li><strong>Multimodality</strong>: there are often many valid actions. Predicting their mean produces incoherent in-between motion (the average of "go left" and "go right" is "don't move").</li>
+    <li><strong>Compounding error</strong>: small per-step errors accumulate. After 100 steps you've drifted.</li>
+    <li><strong>Jerkiness</strong>: independent predictions per step don't enforce smoothness.</li>
+  </ul>
+
+  <p>The fix: <strong>predict an action chunk</strong> &mdash; a short sequence of future actions (e.g., the next 16) as a single object. The generative model job becomes:</p>
+
+  $$\text{model}: o_t \rightarrow p(a_{t:t+H} \mid o_t)$$
+
+  <p>Generate a <em>distribution over short trajectories</em> conditioned on what the robot currently sees.</p>
+
+  <h3>Why Flow Matching fits perfectly</h3>
+
+  <div class="callout robotics">
+    <div class="callout-title">Three reasons it dominates</div>
+    <p><strong>1. Trajectories are inherently continuous.</strong> The velocity-field framing maps directly onto motion.</p>
+    <p><strong>2. Inference latency matters.</strong> At 10&ndash;30 Hz control rates, Flow Matching's 5&ndash;10 step sampling is a huge advantage.</p>
+    <p><strong>3. Multimodality is preserved.</strong> Like diffusion, it can represent multimodal action distributions without averaging modes.</p>
+  </div>
+
+  <h3>Architecture of a Flow Matching policy</h3>
+
+  <div class="diagram-container">
+    <svg viewBox="0 0 500 520" xmlns="http://www.w3.org/2000/svg">
+      <!-- Observation Encoder -->
+      <rect x="100" y="20" width="300" height="60" rx="10" fill="none" stroke="#6ee7f7" stroke-width="1.5"/>
+      <text x="250" y="45" fill="#6ee7f7" font-family="Manrope, sans-serif" font-size="13" text-anchor="middle" font-weight="600">Observation Encoder</text>
+      <text x="250" y="65" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">image + proprioception</text>
+      <!-- Arrow -->
+      <line x1="250" y1="80" x2="250" y2="120" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+      <text x="280" y="107" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">condition c</text>
+      <!-- Velocity Net -->
+      <rect x="100" y="120" width="300" height="70" rx="10" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="250" y="148" fill="#a78bfa" font-family="Manrope, sans-serif" font-size="13" text-anchor="middle" font-weight="600">Flow Matching Velocity Net</text>
+      <text x="250" y="173" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">v&#x3B8;(a&#x209C;, t, c)</text>
+      <!-- Arrow -->
+      <line x1="250" y1="190" x2="250" y2="230" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+      <!-- ODE Integrator -->
+      <rect x="100" y="230" width="300" height="55" rx="10" fill="none" stroke="#34d399" stroke-width="1.5"/>
+      <text x="250" y="255" fill="#34d399" font-family="Manrope, sans-serif" font-size="13" text-anchor="middle" font-weight="600">Integrate ODE</text>
+      <text x="250" y="273" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">t=0 &#x2192; t=1, start from a&#x2080; ~ N(0,I)</text>
+      <!-- Loop arrow back -->
+      <path d="M 400 170 Q 440 170, 440 200 Q 440 230, 400 248" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowHead)" opacity="0.5"/>
+      <text x="455" y="205" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="8" text-anchor="start">5-10 steps</text>
+      <!-- Arrow -->
+      <line x1="250" y1="285" x2="250" y2="325" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+      <!-- Action Chunk -->
+      <rect x="100" y="325" width="300" height="55" rx="10" fill="none" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="250" y="350" fill="#fbbf24" font-family="Manrope, sans-serif" font-size="13" text-anchor="middle" font-weight="600">Action Chunk</text>
+      <text x="250" y="368" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">a&#x209C;:&#x209C;+H (e.g. 16 steps x 7 DoF)</text>
+      <!-- Arrow -->
+      <line x1="250" y1="380" x2="250" y2="420" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+      <!-- Execute -->
+      <rect x="100" y="420" width="300" height="55" rx="10" fill="none" stroke="#f87171" stroke-width="1.5"/>
+      <text x="250" y="445" fill="#f87171" font-family="Manrope, sans-serif" font-size="13" text-anchor="middle" font-weight="600">Execute First K Actions</text>
+      <text x="250" y="463" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">then re-plan (MPC-style)</text>
+    </svg>
+  </div>
+
+  <h3>Worked example &mdash; a reaching task</h3>
+
+  <p>Suppose you have a 7-DoF robot arm and you want it to reach for a cup. Your training data is human demonstrations: image + joint states + future action chunks of length 16.</p>
+
+  <h4>Training:</h4>
+  <ol>
+    <li>Sample a demonstration. Extract the observation $o$ and the ground-truth action chunk $a_1 \in \mathbb{R}^{16 \times 7}$.</li>
+    <li>Sample $a_0 \sim \mathcal{N}(0, I)$ of the same shape and $t \sim \mathcal{U}(0,1)$.</li>
+    <li>Form $a_t = (1-t)a_0 + t a_1$.</li>
+    <li>Predict velocity $v_\theta(a_t, t, \text{encoder}(o))$.</li>
+    <li>Minimize $\|v_\theta - (a_1 - a_0)\|^2$.</li>
+  </ol>
+
+  <h4>Inference (every ~100ms):</h4>
+  <ol>
+    <li>Take current observation $o$.</li>
+    <li>Start from $a_0 \sim \mathcal{N}(0, I)$.</li>
+    <li>Run 5&ndash;10 Euler steps along $v_\theta$ to get an action chunk.</li>
+    <li>Execute the first few actions on the robot.</li>
+    <li>Re-plan from new observation.</li>
+  </ol>
+
+  <p>This is the recipe behind systems like Physical Intelligence's <strong>pi-zero</strong> and <strong>pi-zero.5</strong> models, and a growing list of academic policies.</p>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 8: CHECKPOINT 2                                            -->
+<!-- ================================================================== -->
+<section id="checkpoint2">
+  <span class="section-label">08 &mdash; Pause and Think</span>
+  <h2>Interactive Checkpoint #2</h2>
+
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-badge">Q3</span>
+      <h4>Diffusion policy vs Flow Matching policy trajectories</h4>
+    </div>
+    <div class="checkpoint-body">
+      <div class="checkpoint-q">
+        <p>A diffusion policy and a Flow Matching policy are both trained on the same robot demonstrations. The Flow Matching policy needs only 8 ODE steps; the diffusion policy needs 50. Beyond the obvious latency win, <strong>what other qualitative differences might you expect in the generated trajectories</strong>, and why?</p>
+        <button class="reveal-btn" onclick="toggleReveal(this)"><span class="arrow">&#9654;</span> Reason it out, then reveal</button>
+        <div class="reveal-answer">
+          <p><strong>1. Straighter, smoother trajectories.</strong> With the linear interpolant, the training targets are straight lines. The learned marginal flow tends to be closer to straight than diffusion's curved schedule.</p>
+          <p><strong>2. Less mode-mixing under aggressive step reduction.</strong> Diffusion's curvier trajectory means reducing step count hurts mode coherence &mdash; you can get blends between modes. Flow Matching degrades more gracefully.</p>
+          <p><strong>3. More predictable timing.</strong> Flow Matching trajectories at a given $t$ are at a known fraction of the path from noise to data, making step budgets easier to reason about.</p>
+          <p><strong>4. Lower variance in jerk/acceleration.</strong> The smoother integration tends to produce action chunks with smaller second derivatives, which feels much better on real hardware.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="checkpoint">
+    <div class="checkpoint-header">
+      <span class="checkpoint-badge">Q4</span>
+      <h4>Why start from Gaussian noise?</h4>
+    </div>
+    <div class="checkpoint-body">
+      <div class="checkpoint-q">
+        <p>Why is starting from Gaussian noise &mdash; <em>random arm waving</em> &mdash; even a reasonable initialization for a robot policy? Shouldn't we start from the current pose?</p>
+        <button class="reveal-btn" onclick="toggleReveal(this)"><span class="arrow">&#9654;</span> Think first</button>
+        <div class="reveal-answer">
+          <p>The Gaussian is in <em>action space</em>, not joint space &mdash; it's noise over what the robot will <em>do</em>, not over where it currently is. The current state is provided as conditioning $c$. The model learns to transform Gaussian noise into an action chunk that is appropriate for $c$.</p>
+          <p>The randomness gives us a way to sample diverse plausible behaviors when the task is multimodal, while the conditioning anchors everything to the actual scene. It's the same logic as text-to-image diffusion starting from noise but conditioning on a prompt.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 9: VLA                                                     -->
+<!-- ================================================================== -->
+<section id="vla">
+  <span class="section-label">09 &mdash; Vision-Language-Action</span>
+  <h2>Flow Matching in VLA Models</h2>
+
+  <p>A <strong>Vision-Language-Action (VLA) model</strong> is a robot policy with three input modalities: pixels, natural language instruction, and robot proprioception. The output is an action chunk. Leading examples &mdash; RT-2, OpenVLA, pi-zero / pi-zero.5 &mdash; combine a large pretrained vision-language model (VLM) backbone with an action head.</p>
+
+  <p>The action head is where the magic happens. Earlier VLA work used token regression or autoregressive action tokens. The current generation overwhelmingly uses <strong>diffusion or Flow Matching action heads</strong>, with Flow Matching pulling ahead due to its speed and smoothness.</p>
+
+  <h3>Full VLA architecture with a Flow Matching head</h3>
+
+  <div class="diagram-container">
+    <svg viewBox="0 0 700 680" xmlns="http://www.w3.org/2000/svg">
+      <!-- Camera -->
+      <rect x="60" y="20" width="220" height="55" rx="10" fill="none" stroke="#6ee7f7" stroke-width="1.5"/>
+      <text x="170" y="45" fill="#6ee7f7" font-family="Manrope, sans-serif" font-size="12" text-anchor="middle" font-weight="600">Camera Images</text>
+      <text x="170" y="62" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">RGB tensors</text>
+      <!-- Language -->
+      <rect x="420" y="20" width="220" height="55" rx="10" fill="none" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="530" y="45" fill="#fbbf24" font-family="Manrope, sans-serif" font-size="12" text-anchor="middle" font-weight="600">Language Instruction</text>
+      <text x="530" y="62" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">"pick up the mug"</text>
+      <!-- Arrows down -->
+      <line x1="170" y1="75" x2="170" y2="110" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+      <line x1="530" y1="75" x2="530" y2="110" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+      <!-- Vision encoder -->
+      <rect x="60" y="110" width="220" height="55" rx="10" fill="none" stroke="#6ee7f7" stroke-width="1.2" stroke-dasharray="4,3"/>
+      <text x="170" y="135" fill="#6ee7f7" font-family="Manrope, sans-serif" font-size="12" text-anchor="middle" font-weight="600">Vision Encoder</text>
+      <text x="170" y="152" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">ViT / SigLIP</text>
+      <!-- Language encoder -->
+      <rect x="420" y="110" width="220" height="55" rx="10" fill="none" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="4,3"/>
+      <text x="530" y="135" fill="#fbbf24" font-family="Manrope, sans-serif" font-size="12" text-anchor="middle" font-weight="600">Language Encoder</text>
+      <text x="530" y="152" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">T5 / LLaMA</text>
+      <!-- Token labels -->
+      <text x="170" y="185" fill="#6ee7f7" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" opacity="0.7">visual tokens</text>
+      <text x="530" y="185" fill="#fbbf24" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle" opacity="0.7">text tokens</text>
+      <!-- Arrows converging -->
+      <line x1="170" y1="165" x2="310" y2="210" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+      <line x1="530" y1="165" x2="390" y2="210" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+      <!-- VLM Backbone -->
+      <rect x="180" y="210" width="340" height="65" rx="10" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="350" y="237" fill="#a78bfa" font-family="Manrope, sans-serif" font-size="13" text-anchor="middle" font-weight="600">VLM Backbone</text>
+      <text x="350" y="260" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">cross-attention transformer</text>
+      <!-- Arrow -->
+      <line x1="350" y1="275" x2="350" y2="320" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+      <text x="395" y="305" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">fused condition c</text>
+      <!-- Flow Matching Head -->
+      <rect x="150" y="320" width="400" height="70" rx="10" fill="none" stroke="#34d399" stroke-width="2"/>
+      <text x="350" y="348" fill="#34d399" font-family="Manrope, sans-serif" font-size="14" text-anchor="middle" font-weight="700">Flow Matching Action Head</text>
+      <text x="350" y="375" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">v&#x3B8;(a&#x209C;, t, c)  &mdash;  transformer / DiT-style</text>
+      <!-- Arrow -->
+      <line x1="350" y1="390" x2="350" y2="430" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+      <text x="395" y="417" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">velocity</text>
+      <!-- Euler Step -->
+      <rect x="200" y="430" width="300" height="55" rx="10" fill="none" stroke="#34d399" stroke-width="1.2"/>
+      <text x="350" y="455" fill="#34d399" font-family="Manrope, sans-serif" font-size="12" text-anchor="middle" font-weight="600">Euler Step Update</text>
+      <text x="350" y="473" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">a&#x209C;+&#x394;&#x209C; = a&#x209C; + v&#x3B8;(a&#x209C;, t, c) &#x394;t</text>
+      <!-- Loop arrow -->
+      <path d="M 500 360 Q 580 360, 580 430 Q 580 470, 500 460" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowHead)" opacity="0.5"/>
+      <text x="595" y="420" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="8">loop k=5-10</text>
+      <!-- Arrow -->
+      <line x1="350" y1="485" x2="350" y2="525" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowHead)"/>
+      <!-- Action chunk -->
+      <rect x="180" y="525" width="340" height="55" rx="10" fill="none" stroke="#f87171" stroke-width="1.5"/>
+      <text x="350" y="550" fill="#f87171" font-family="Manrope, sans-serif" font-size="13" text-anchor="middle" font-weight="600">Action Chunk a&#x2081;</text>
+      <text x="350" y="568" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">&#x211D;^{H x A}  (H&#x2248;16, A&#x2248;7 for single arm)</text>
+    </svg>
+  </div>
+
+  <h3>What each block does</h3>
+
+  <ul>
+    <li><strong>Vision encoder</strong>: turns images into a sequence of visual tokens. Often a frozen ViT or SigLIP from a pretrained VLM.</li>
+    <li><strong>Language encoder</strong>: turns the instruction into text tokens. Often a frozen LLM.</li>
+    <li><strong>VLM backbone</strong>: jointly attends over visual and text tokens. This is where pretrained knowledge (open-world semantics, commonsense, object permanence) lives.</li>
+    <li><strong>Flow Matching head</strong>: a smaller transformer that takes the current noisy action chunk $a_t$, the time embedding for $t$, and the conditioning context $c$, and predicts the velocity. This is the <em>only</em> part typically trained on robot data; the rest can be frozen or LoRA-tuned.</li>
+    <li><strong>ODE sampler</strong>: integrates the predicted velocity field. The standard choice is around 10 Euler steps.</li>
+  </ul>
+
+  <h3>Why Flow Matching is winning in VLAs</h3>
+
+  <ul>
+    <li><strong>Latency.</strong> Going from 50-step diffusion to 10-step flow matching is a 5x speedup on the action head.</li>
+    <li><strong>Smoother actions.</strong> Real hardware vibrates and overshoots when fed jerky commands.</li>
+    <li><strong>Simpler training.</strong> Plain MSE means fewer knobs. Every saved hyperparameter sweep is real money.</li>
+    <li><strong>Compatible with everything.</strong> Classifier-free guidance, conditioning dropout, action-chunk masking &mdash; pretty much every diffusion trick transfers directly.</li>
+  </ul>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 10: CODE                                                   -->
+<!-- ================================================================== -->
+<section id="code">
+  <span class="section-label">10 &mdash; Working Code</span>
+  <h2>Code Examples</h2>
+
+  <h3>Minimal Flow Matching in PyTorch &mdash; 2D Ring</h3>
+
+  <p>This is a complete, runnable Flow Matching implementation that learns to generate 2D data (a ring of points). Drop it into a <code>.py</code> file and run it.</p>
+
+  <div class="code-wrapper">
+    <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+import math
+
+# -------------------------------------------------------------
+# 1. The velocity field network v_theta(x, t)
+# -------------------------------------------------------------
+class VelocityField(nn.Module):
+    """A small MLP that takes (x, t) and outputs a velocity vector."""
+
+    def __init__(self, data_dim: int = 2, hidden: int = 128):
+        super().__init__()
+        # Sinusoidal-ish time features make the network sensitive to t.
+        self.time_proj = nn.Linear(1, hidden)
+        self.net = nn.Sequential(
+            nn.Linear(data_dim + hidden, hidden),
+            nn.SiLU(),
+            nn.Linear(hidden, hidden),
+            nn.SiLU(),
+            nn.Linear(hidden, hidden),
+            nn.SiLU(),
+            nn.Linear(hidden, data_dim),
+        )
+
+    def forward(self, x: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+        # x: (B, data_dim)
+        # t: (B, 1) with values in [0, 1]
+        t_feat = torch.sin(self.time_proj(t))   # cheap nonlinear t embedding
+        return self.net(torch.cat([x, t_feat], dim=-1))
+
+
+# -------------------------------------------------------------
+# 2. Toy data distribution — a noisy ring in 2D
+# -------------------------------------------------------------
+def sample_ring(batch_size: int, radius: float = 2.0,
+                noise: float = 0.05) -> torch.Tensor:
+    theta = torch.rand(batch_size) * 2 * math.pi
+    x = radius * torch.cos(theta) + noise * torch.randn(batch_size)
+    y = radius * torch.sin(theta) + noise * torch.randn(batch_size)
+    return torch.stack([x, y], dim=-1)
+
+
+# -------------------------------------------------------------
+# 3. Training loop — the entire Flow Matching algorithm
+# -------------------------------------------------------------
+def train(steps: int = 5000, batch_size: int = 512, lr: float = 1e-3):
+    model = VelocityField()
+    opt = torch.optim.Adam(model.parameters(), lr=lr)
+
+    for step in range(steps):
+        # (a) Sample a batch of real data (x1) and Gaussian noise (x0).
+        x1 = sample_ring(batch_size)                       # target samples
+        x0 = torch.randn_like(x1)                          # noise samples
+
+        # (b) Sample a random time t per example, in [0, 1].
+        t = torch.rand(batch_size, 1)
+
+        # (c) Form the linear interpolant x_t = (1-t) x_0 + t x_1.
+        xt = (1.0 - t) * x0 + t * x1
+
+        # (d) The target velocity is the constant displacement x_1 - x_0.
+        target_v = x1 - x0
+
+        # (e) Predict velocity, compute MSE loss, backprop. That's it.
+        pred_v = model(xt, t)
+        loss = ((pred_v - target_v) ** 2).mean()
+
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
+
+        if step % 500 == 0:
+            print(f"step {step:5d} | loss {loss.item():.4f}")
+
+    return model
+
+
+# -------------------------------------------------------------
+# 4. Sampling — solve dx/dt = v_theta(x, t) with Euler steps
+# -------------------------------------------------------------
+@torch.no_grad()
+def sample(model: VelocityField, n: int = 1024,
+           n_steps: int = 50) -> torch.Tensor:
+    x = torch.randn(n, 2)                # start from pure noise (p_0)
+    dt = 1.0 / n_steps
+    for i in range(n_steps):
+        t = torch.full((n, 1), i * dt)   # current time, broadcasted
+        v = model(x, t)
+        x = x + v * dt                   # Euler update
+    return x                             # x is now (approximately) ~ p_1
+
+
+# -------------------------------------------------------------
+# 5. Run it
+# -------------------------------------------------------------
+if __name__ == "__main__":
+    model = train()
+    samples = sample(model)
+    print("Sampled mean radius:",
+          samples.norm(dim=-1).mean().item(),
+          "(target ~2.0)")</code></pre>
+  </div>
+
+  <div class="callout insight">
+    <div class="callout-title">What you should observe</div>
+    <p>The loss drops smoothly, and the final samples cluster around radius 2.0 &mdash; the model has learned the ring distribution. The remarkable thing is what's <em>not</em> there: no noise schedule, no $\beta$ values, no variance lower bound, no Tweedie correction. Just three lines of training logic.</p>
+  </div>
+
+  <h3>VLA Integration Snippet</h3>
+
+  <p>Here's how a Flow Matching action head slots into a VLA architecture. This is the structural recipe; in practice you'd use a much larger transformer for the velocity head and a real VLM backbone.</p>
+
+  <div class="code-wrapper">
+    <button class="copy-btn" onclick="copyCode(this)">copy</button>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+
+
+# -------------------------------------------------------------
+# A toy VLM-style encoder (replace with frozen SigLIP + T5)
+# -------------------------------------------------------------
+class VLMBackbone(nn.Module):
+    def __init__(self, embed_dim: int = 512):
+        super().__init__()
+        self.vision = nn.Linear(3 * 224 * 224, embed_dim)
+        self.text   = nn.Embedding(32000, embed_dim)
+        self.fuse   = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(
+                embed_dim, nhead=8, batch_first=True),
+            num_layers=2,
+        )
+
+    def forward(self, image, text_ids):
+        B = image.shape[0]
+        vis_tok = self.vision(image.flatten(1)).unsqueeze(1)
+        txt_tok = self.text(text_ids)
+        tokens  = torch.cat([vis_tok, txt_tok], dim=1)
+        return self.fuse(tokens)  # context c
+
+
+# -------------------------------------------------------------
+# Flow Matching action head — predicts velocity over a chunk
+# -------------------------------------------------------------
+class FlowMatchingActionHead(nn.Module):
+    def __init__(self, action_dim=7, horizon=16,
+                 embed_dim=512, hidden=512):
+        super().__init__()
+        self.action_dim = action_dim
+        self.horizon    = horizon
+        self.action_in  = nn.Linear(action_dim, hidden)
+        self.time_in    = nn.Sequential(
+            nn.Linear(1, hidden), nn.SiLU())
+        self.cond_proj  = nn.Linear(embed_dim, hidden)
+
+        decoder_layer = nn.TransformerDecoderLayer(
+            hidden, nhead=8, batch_first=True)
+        self.decoder = nn.TransformerDecoder(
+            decoder_layer, num_layers=4)
+        self.out = nn.Linear(hidden, action_dim)
+
+    def forward(self, a_t, t, c):
+        # a_t: (B, H, A)  noisy action chunk
+        # t:   (B, 1)     time in [0, 1]
+        # c:   (B, T, d)  fused VLM context
+        tok = self.action_in(a_t)        # (B, H, hidden)
+        t_emb = self.time_in(t).unsqueeze(1)
+        tok = tok + t_emb               # FiLM-style add
+        mem = self.cond_proj(c)
+        h = self.decoder(tok, mem)       # cross-attend
+        return self.out(h)               # (B, H, A) velocity
+
+
+# -------------------------------------------------------------
+# Full VLA policy: backbone + flow head + integrator
+# -------------------------------------------------------------
+class FlowMatchingVLA(nn.Module):
+    def __init__(self, action_dim=7, horizon=16):
+        super().__init__()
+        self.backbone = VLMBackbone()
+        self.head = FlowMatchingActionHead(
+            action_dim=action_dim, horizon=horizon)
+        self.action_dim = action_dim
+        self.horizon = horizon
+
+    # --- training: flow matching loss conditioned on (image, text)
+    def loss(self, image, text_ids, a1):
+        B = a1.shape[0]
+        a0 = torch.randn_like(a1)
+        t  = torch.rand(B, 1, device=a1.device)
+        at = (1 - t.view(B,1,1)) * a0 + t.view(B,1,1) * a1
+        target = a1 - a0
+        c = self.backbone(image, text_ids)
+        pred = self.head(at, t, c)
+        return ((pred - target) ** 2).mean()
+
+    # --- inference: solve the ODE
+    @torch.no_grad()
+    def act(self, image, text_ids, n_steps=10):
+        B = image.shape[0]
+        c = self.backbone(image, text_ids)
+        a = torch.randn(B, self.horizon, self.action_dim,
+                        device=image.device)
+        dt = 1.0 / n_steps
+        for i in range(n_steps):
+            t = torch.full((B, 1), i * dt, device=image.device)
+            v = self.head(a, t, c)
+            a = a + v * dt
+        return a  # (B, H, A) — execute first few, then re-plan</code></pre>
+  </div>
+
+  <div class="callout robotics">
+    <div class="callout-title">Swapping diffusion for flow matching</div>
+    <p>To convert a diffusion-policy VLA into a Flow Matching VLA, you only need to: (1) swap the loss from noise-prediction MSE to velocity MSE, and (2) swap the sampler from a noise scheduler to an ODE integrator. Everything else &mdash; encoders, backbone, conditioning, action chunking &mdash; stays the same.</p>
+  </div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 11: SUMMARY                                                -->
+<!-- ================================================================== -->
+<section id="summary">
+  <span class="section-label">11 &mdash; Summary</span>
+  <h2>Key Insights</h2>
+
+  <p><strong>Flow Matching in one breath</strong>: instead of inverting a noise process, learn the velocity field that morphs noise into data along a straight line, by regressing on the simple displacement $x_1 - x_0$.</p>
+
+  <div class="insight-cards">
+    <div class="insight-card">
+      <span class="card-num">1</span>
+      <h4>The path is a design choice</h4>
+      <p>Linear interpolants are simple and work well, but you can choose other paths (variance-preserving, optimal transport). Flow Matching is a framework, not a single algorithm.</p>
+    </div>
+    <div class="insight-card">
+      <span class="card-num">2</span>
+      <h4>The conditional trick is the core</h4>
+      <p>Regressing against the constant per-pair displacement is equivalent to regressing against the intractable true marginal velocity. This is the theoretical magic.</p>
+    </div>
+    <div class="insight-card">
+      <span class="card-num">3</span>
+      <h4>Sampling is just solving an ODE</h4>
+      <p>This gives you all the tools of numerical ODE solvers: adaptive step sizes, error estimates, parallel-in-time methods.</p>
+    </div>
+    <div class="insight-card">
+      <span class="card-num">4</span>
+      <h4>Robotics wins are real</h4>
+      <p>Smoother on hardware, lower latency, easier to tune. Modern VLAs are converging on Flow Matching as the default action head.</p>
+    </div>
+  </div>
+
+  <h3>When to use Flow Matching</h3>
+
+  <div class="decision-grid">
+    <div class="decision-col yes">
+      <h4>Reach for Flow Matching when...</h4>
+      <ul>
+        <li>Generating continuous-valued outputs (trajectories, images, audio, latents)</li>
+        <li>You care about sampling latency</li>
+        <li>You want minimal hyperparameter tuning</li>
+        <li>You want smoothness in the output</li>
+        <li>You're building a robot policy or VLA &mdash; it's the default</li>
+      </ul>
+    </div>
+    <div class="decision-col no">
+      <h4>Pick something else when...</h4>
+      <ul>
+        <li>Pure discrete data (tokens) &mdash; autoregressive or discrete diffusion are more natural</li>
+        <li>You need strict likelihood evaluation &mdash; some classical normalizing flows have advantages</li>
+        <li>Tiny datasets where simpler models suffice (a Gaussian mixture may be all you need)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout insight">
+    <div class="callout-title">If you only remember one thing</div>
+    <p><strong>Flow Matching is regression on velocities, and that simplicity is its superpower.</strong></p>
+  </div>
+</section>
+
+<!-- ================================================================== -->
+<!-- SECTION 12: FURTHER READING                                        -->
+<!-- ================================================================== -->
+<section id="reading">
+  <span class="section-label">12 &mdash; Further Reading</span>
+  <h2>Where to Go Next</h2>
+
+  <h3>Foundational Papers</h3>
+  <div class="paper-cards">
+    <div class="paper-card">
+      <span class="paper-tag foundation">Foundation</span>
+      <h4>Flow Matching for Generative Modeling</h4>
+      <p>Lipman et al., 2023 &mdash; the original CFM paper. Very readable. The paper that started it all.</p>
+    </div>
+    <div class="paper-card">
+      <span class="paper-tag foundation">Foundation</span>
+      <h4>Rectified Flow</h4>
+      <p>Liu et al., 2022 &mdash; same idea framed as ODE straightening, with iterative refinement.</p>
+    </div>
+    <div class="paper-card">
+      <span class="paper-tag theory">Theory</span>
+      <h4>Stochastic Interpolants</h4>
+      <p>Albergo & Vanden-Eijnden, 2023 &mdash; unified framework connecting diffusion and flow matching.</p>
+    </div>
+  </div>
+
+  <h3>Robotics & VLA</h3>
+  <div class="paper-cards">
+    <div class="paper-card">
+      <span class="paper-tag robotics">Robotics</span>
+      <h4>Diffusion Policy</h4>
+      <p>Chi et al., 2023 &mdash; the diffusion-based predecessor that defined the action-chunk paradigm.</p>
+    </div>
+    <div class="paper-card">
+      <span class="paper-tag robotics">Robotics</span>
+      <h4>pi-zero: A Vision-Language-Action Flow Model</h4>
+      <p>Black et al., Physical Intelligence, 2024 &mdash; Flow Matching for VLAs with great real-robot results.</p>
+    </div>
+  </div>
+
+  <h3>Image Generation & Theory</h3>
+  <div class="paper-cards">
+    <div class="paper-card">
+      <span class="paper-tag image">Images</span>
+      <h4>Scaling Rectified Flow Transformers (SD3)</h4>
+      <p>Esser et al., 2024 &mdash; production-scale flow matching for images. Stable Diffusion 3.</p>
+    </div>
+    <div class="paper-card">
+      <span class="paper-tag theory">Theory</span>
+      <h4>Minibatch Optimal Transport</h4>
+      <p>Tong et al., 2023 &mdash; pair noise to data via OT for straighter flows and faster training.</p>
+    </div>
+  </div>
+
+  <h3>Practitioner Resources</h3>
+  <ul>
+    <li>Meta's <code>flow_matching</code> library</li>
+    <li>The various <code>diffusion-policy</code> and <code>pi0</code> open-source re-implementations</li>
+    <li>Physical Intelligence's <code>openpi</code> release</li>
+    <li><a href="https://federicosarrocco.com/blog/flow-matching">Federico Sarrocco's Flow Matching blog post</a></li>
+    <li><a href="https://arxiv.org/pdf/2412.06264">Flow Matching Guide and Code (arXiv 2412.06264)</a></li>
+  </ul>
+</section>
+
+</main><!-- .main-content -->
+</div><!-- .wrapper -->
+
+<!-- ================================================================== -->
+<!-- FOOTER                                                             -->
+<!-- ================================================================== -->
+<footer class="site-footer">
+  <p>Now go build something that flows.</p>
+  <p style="font-size:0.78rem; color:var(--text-muted);">References: Lipman et al. 2023, Liu et al. 2022, Albergo & Vanden-Eijnden 2023, Chi et al. 2023, Black et al. 2024, Esser et al. 2024</p>
+</footer>
+
+<!-- ================================================================== -->
+<!-- JAVASCRIPT                                                         -->
+<!-- ================================================================== -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ============================================================
+  // HERO CANVAS — flowing particle field
+  // ============================================================
+  (function initHeroCanvas() {
+    const canvas = document.getElementById('heroCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H;
+    const particles = [];
+    const NUM = 180;
+
+    function resize() {
+      const r = window.devicePixelRatio || 1;
+      W = canvas.parentElement.clientWidth;
+      H = canvas.parentElement.clientHeight;
+      canvas.width = W * r;
+      canvas.height = H * r;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx.setTransform(r, 0, 0, r, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function vecField(x, y, time) {
+      const nx = x / W;
+      const ny = y / H;
+      const vx = Math.sin(ny * 4 + time * 0.3) * 40 + 20;
+      const vy = Math.cos(nx * 3 + time * 0.2) * 25;
+      return [vx, vy];
+    }
+
+    for (let i = 0; i < NUM; i++) {
+      particles.push({
+        x: Math.random() * 2000,
+        y: Math.random() * 2000,
+        life: Math.random() * 200 + 60,
+        age: Math.floor(Math.random() * 200),
+        size: Math.random() * 1.5 + 0.5
+      });
+    }
+
+    let time = 0;
+    function draw() {
+      if (prefersReducedMotion) return;
+      ctx.clearRect(0, 0, W, H);
+      time += 0.016;
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        const [vx, vy] = vecField(p.x, p.y, time);
+        p.x += vx * 0.016;
+        p.y += vy * 0.016;
+        p.age++;
+
+        if (p.age > p.life || p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) {
+          p.x = Math.random() * W;
+          p.y = Math.random() * H;
+          p.age = 0;
+          p.life = Math.random() * 200 + 60;
+        }
+
+        const alpha = Math.min(p.age / 20, 1) * Math.max(0, 1 - p.age / p.life) * 0.4;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(110, 231, 247, ${alpha})`;
+        ctx.fill();
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+
+  // ============================================================
+  // RIVER SVG — animated particles
+  // ============================================================
+  (function initRiverParticles() {
+    const svg = document.getElementById('riverSvg');
+    if (!svg || prefersReducedMotion) return;
+    const ns = 'http://www.w3.org/2000/svg';
+    const dots = [];
+    const N = 20;
+
+    for (let i = 0; i < N; i++) {
+      const c = document.createElementNS(ns, 'circle');
+      c.setAttribute('r', '3');
+      c.setAttribute('fill', '#6ee7f7');
+      c.setAttribute('opacity', '0');
+      svg.appendChild(c);
+      dots.push({
+        el: c,
+        x: Math.random() * 30 + 30,
+        y: Math.random() * 160 + 20,
+        vx: 0,
+        delay: Math.random() * 3
+      });
+    }
+
+    let t = 0;
+    function animate() {
+      t += 0.016;
+      for (const d of dots) {
+        if (t < d.delay) continue;
+        const progress = (d.x - 30) / 600;
+        d.vx = 60 + progress * 30;
+        const vy = Math.sin(d.x * 0.015 + t) * 10;
+        d.x += d.vx * 0.016;
+        d.y += vy * 0.016;
+
+        const alpha = Math.min(1, (d.x - 30) / 60) * Math.max(0, 1 - (d.x - 30) / 600) * 0.7;
+        d.el.setAttribute('cx', d.x);
+        d.el.setAttribute('cy', d.y);
+        d.el.setAttribute('opacity', alpha);
+
+        if (d.x > 660) {
+          d.x = 30 + Math.random() * 20;
+          d.y = Math.random() * 160 + 20;
+          d.delay = t + Math.random() * 0.5;
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+    animate();
+  })();
+
+  // ============================================================
+  // VECTOR FIELD EXPLORER — interactive canvas
+  // ============================================================
+  (function initVectorField() {
+    const canvas = document.getElementById('vectorFieldCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = 700, H = 400;
+    const r = window.devicePixelRatio || 1;
+    canvas.width = W * r;
+    canvas.height = H * r;
+    canvas.style.width = '100%';
+    ctx.setTransform(r, 0, 0, r, 0, 0);
+
+    // Data targets: 3 clusters on the right side
+    const targets = [
+      { x: 550, y: 100 },
+      { x: 580, y: 200 },
+      { x: 540, y: 310 }
+    ];
+
+    function field(x, y) {
+      let fx = 0, fy = 0;
+      for (const t of targets) {
+        const dx = t.x - x, dy = t.y - y;
+        const dist = Math.sqrt(dx * dx + dy * dy) + 1;
+        const w = 1 / (dist * 0.02 + 1);
+        fx += dx / dist * w * 30;
+        fy += dy / dist * w * 30;
+      }
+      const mag = Math.sqrt(fx * fx + fy * fy) + 0.01;
+      const s = Math.min(mag, 40) / mag;
+      return [fx * s, fy * s];
+    }
+
+    // Draw static arrows
+    function drawField() {
+      ctx.clearRect(0, 0, W, H);
+      const step = 45;
+      for (let x = 30; x < W; x += step) {
+        for (let y = 30; y < H; y += step) {
+          const [vx, vy] = field(x, y);
+          const len = Math.sqrt(vx * vx + vy * vy);
+          const nx = vx / len, ny = vy / len;
+          const drawLen = Math.min(len, 18);
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + nx * drawLen, y + ny * drawLen);
+          ctx.strokeStyle = `rgba(110, 231, 247, ${0.15 + len / 80})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          // arrowhead
+          const ax = x + nx * drawLen, ay = y + ny * drawLen;
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.lineTo(ax - nx * 4 + ny * 2, ay - ny * 4 - nx * 2);
+          ctx.lineTo(ax - nx * 4 - ny * 2, ay - ny * 4 + nx * 2);
+          ctx.closePath();
+          ctx.fillStyle = `rgba(110, 231, 247, ${0.15 + len / 80})`;
+          ctx.fill();
+        }
+      }
+
+      // Draw target clusters
+      for (const t of targets) {
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 12, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(52, 211, 153, 0.15)';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(52, 211, 153, 0.6)';
+        ctx.fill();
+      }
+
+      // Labels
+      ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('NOISE (source)', 20, H - 10);
+      ctx.fillText('DATA (target)', W - 110, H - 10);
+    }
+
+    const particles = [];
+
+    // Add some initial particles
+    for (let i = 0; i < 8; i++) {
+      particles.push({
+        x: 40 + Math.random() * 80,
+        y: 50 + Math.random() * (H - 100),
+        trail: [],
+        age: 0
+      });
+    }
+
+    canvas.addEventListener('click', function(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = W / rect.width;
+      const scaleY = H / rect.height;
+      const mx = (e.clientX - rect.left) * scaleX;
+      const my = (e.clientY - rect.top) * scaleY;
+      particles.push({ x: mx, y: my, trail: [], age: 0 });
+      if (particles.length > 40) particles.shift();
+    });
+
+    function animate() {
+      drawField();
+
+      for (const p of particles) {
+        const [vx, vy] = field(p.x, p.y);
+        p.x += vx * 0.03;
+        p.y += vy * 0.03;
+        p.age++;
+        p.trail.push({ x: p.x, y: p.y });
+        if (p.trail.length > 80) p.trail.shift();
+
+        // Draw trail
+        if (p.trail.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(p.trail[0].x, p.trail[0].y);
+          for (let i = 1; i < p.trail.length; i++) {
+            ctx.lineTo(p.trail[i].x, p.trail[i].y);
+          }
+          ctx.strokeStyle = 'rgba(167, 139, 250, 0.5)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        // Draw particle
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#a78bfa';
+        ctx.fill();
+      }
+
+      if (!prefersReducedMotion) {
+        requestAnimationFrame(animate);
+      }
+    }
+    animate();
+  })();
+
+  // ============================================================
+  // INTERPOLATION SLIDER — noise to data morph
+  // ============================================================
+  (function initInterpolantCanvas() {
+    const canvas = document.getElementById('interpolantCanvas');
+    const slider = document.getElementById('tSlider');
+    const valDisplay = document.getElementById('tVal');
+    if (!canvas || !slider) return;
+    const ctx = canvas.getContext('2d');
+    const W = 700, H = 300;
+    const r = window.devicePixelRatio || 1;
+    canvas.width = W * r;
+    canvas.height = H * r;
+    canvas.style.width = '100%';
+    ctx.setTransform(r, 0, 0, r, 0, 0);
+
+    // Pre-generate noise and data samples
+    const N = 200;
+    const noise = [];
+    const data = [];
+    function gaussRand() {
+      let u = 0, v = 0;
+      while (u === 0) u = Math.random();
+      while (v === 0) v = Math.random();
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    }
+
+    for (let i = 0; i < N; i++) {
+      noise.push({ x: gaussRand() * 50, y: gaussRand() * 50 });
+      const angle = Math.random() * Math.PI * 2;
+      const rad = 100 + gaussRand() * 4;
+      data.push({ x: Math.cos(angle) * rad, y: Math.sin(angle) * rad });
+    }
+
+    function draw(tVal) {
+      ctx.clearRect(0, 0, W, H);
+      const cx = W / 2, cy = H / 2;
+
+      // Draw points
+      for (let i = 0; i < N; i++) {
+        const x = (1 - tVal) * noise[i].x + tVal * data[i].x;
+        const y = (1 - tVal) * noise[i].y + tVal * data[i].y;
+
+        ctx.beginPath();
+        ctx.arc(cx + x, cy + y, 2.5, 0, Math.PI * 2);
+        // Color interpolation: accent2 (noise) -> accent (data)
+        const r2 = Math.round(167 + (110 - 167) * tVal);
+        const g = Math.round(139 + (231 - 139) * tVal);
+        const b = Math.round(250 + (247 - 250) * tVal);
+        ctx.fillStyle = `rgba(${r2}, ${g}, ${b}, 0.7)`;
+        ctx.fill();
+      }
+
+      // Labels
+      ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillStyle = '#94a3b8';
+      ctx.textAlign = 'center';
+      if (tVal < 0.15) {
+        ctx.fillText('p₀ = Gaussian noise', cx, H - 15);
+      } else if (tVal > 0.85) {
+        ctx.fillText('p₁ = data (ring)', cx, H - 15);
+      } else {
+        ctx.fillText('p_t = interpolation', cx, H - 15);
+      }
+      ctx.textAlign = 'left';
+    }
+
+    slider.addEventListener('input', function() {
+      const t = parseInt(this.value) / 100;
+      valDisplay.textContent = t.toFixed(2);
+      draw(t);
+    });
+
+    draw(0);
+  })();
+
+  // ============================================================
+  // SCROLLSPY for TOC
+  // ============================================================
+  (function initScrollspy() {
+    const sections = document.querySelectorAll('section[id]');
+    const tocLinks = document.querySelectorAll('.toc-sidebar a');
+    if (!sections.length || !tocLinks.length) return;
+
+    const obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(function(link) { link.classList.remove('active'); });
+          const active = document.querySelector('.toc-sidebar a[href="#' + entry.target.id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    sections.forEach(function(s) { obs.observe(s); });
+  })();
+
+  // ============================================================
+  // CODE COPY BUTTONS
+  // ============================================================
+  // (handled by global copyCode function below)
+
+  // ============================================================
+  // AUTO-HIGHLIGHT with Prism after load
+  // ============================================================
+  if (typeof Prism !== 'undefined') {
+    Prism.highlightAll();
+  } else {
+    window.addEventListener('load', function() {
+      if (typeof Prism !== 'undefined') Prism.highlightAll();
+    });
+  }
+});
+
+// ============================================================
+// GLOBAL FUNCTIONS
+// ============================================================
+function toggleReveal(btn) {
+  const answer = btn.nextElementSibling;
+  if (!answer) return;
+  btn.classList.toggle('open');
+  answer.classList.toggle('open');
+}
+
+function copyCode(btn) {
+  const wrapper = btn.parentElement;
+  const code = wrapper.querySelector('code');
+  if (!code) return;
+  navigator.clipboard.writeText(code.textContent).then(function() {
+    btn.textContent = 'copied!';
+    setTimeout(function() { btn.textContent = 'copy'; }, 1500);
+  }).catch(function() {
+    btn.textContent = 'failed';
+    setTimeout(function() { btn.textContent = 'copy'; }, 1500);
+  });
+}
+</script>
+
+</body>
+</html>
